@@ -8,16 +8,22 @@ Ziel ist eine leicht bedienbare, robuste Lösung, die den Alltag für Kinder, P�
 
 ## Inhaltsverzeichnis
 
-1. [Projektüberblick](#projektüberblick)  
-2. [Zielgruppe & Ziele](#zielgruppe--ziele)  
-3. [Features (geplant)](#features-geplant)  
-4. [Tech-Stack](#tech-stack)  
-5. [Architektur & Diagramme](#architektur--diagramme)  
-   - [Systemübersicht](#systemübersicht)  
-   - [Systemarchitektur](#systemarchitektur)  
-   - [Datenmodell](#datenmodell)  
-   - [User Flow](#user-flow)  
-6. [Repository-Struktur & verwandte Repositories](#repository-struktur--verwandte-repositories)  
+- [Lokato – Interaktives Raumdisplay für den Hort Pregarten](#lokato--interaktives-raumdisplay-für-den-hort-pregarten)
+  - [Inhaltsverzeichnis](#inhaltsverzeichnis)
+  - [Projektüberblick](#projektüberblick)
+  - [Zielgruppe \& Ziele](#zielgruppe--ziele)
+  - [Features (geplant)](#features-geplant)
+  - [Tech-Stack](#tech-stack)
+  - [Architektur \& Diagramme](#architektur--diagramme)
+    - [Systemübersicht](#systemübersicht)
+    - [Systemarchitektur](#systemarchitektur)
+    - [Datenmodell](#datenmodell)
+    - [User Flow](#user-flow)
+  - [Repository-Struktur \& verwandte Repositories](#repository-struktur--verwandte-repositories)
+  - [Projektstatus](#projektstatus)
+  - [FH-Kontext](#fh-kontext)
+  - [Team](#team)
+  - [Betreuung](#betreuung)
 <!--7. [Installation & Setup](#installation--setup)  -->
 <!--8. [Nutzung](#nutzung)-->  
 7. [Projektstatus](#projektstatus)  
@@ -108,7 +114,8 @@ TODO
 
 Darstellung der technischen Architektur (Frontend, Backend, Datenbank, ggf. Hardware-Schicht).
 
-TODP
+![Lokato Architekturdiagram](docs/diagrams/Lokato-architecture-2025-11-20-234727.svg)
+
 
 ---
 
