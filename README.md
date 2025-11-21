@@ -124,6 +124,93 @@ Darstellung der technischen Architektur (Frontend, Backend, Datenbank, ggf. Hard
 
 Überblick über die wichtigsten Entitäten und deren Beziehungen.
 
+![Lokato Datenmodel](docs/diagrams/Lokato-erd-2025-11-21.png)
+
+``` sql
+
+CREATE TABLE child_locations
+(
+  child_id   integer(11) NOT NULL AUTO_INCREMENT,
+  room_id    integer(11) NULL    ,
+  updated_at datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (child_id)
+);
+
+CREATE TABLE children
+(
+  id          integer(11)  NOT NULL AUTO_INCREMENT,
+  name        varchar(255) NOT NULL,
+  photo_url   varchar(255) NULL    ,
+  tracker_uid varchar(255) NOT NULL,
+  is_active   tinyint(1)   NOT NULL DEFAULT 1,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE devices
+(
+  id         integer(11)  NOT NULL AUTO_INCREMENT,
+  name       varchar(255) NOT NULL,
+  device_key varchar(255) NOT NULL,
+  room_id    integer(11)  NOT NULL,
+  last_seen  datetime     NULL    ,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE movement_log
+(
+  id           integer(11)  NOT NULL AUTO_INCREMENT,
+  child_id     integer(11)  NOT NULL,
+  from_room_id integer(11)  NULL    ,
+  to_room_id   integer(11)  NULL    ,
+  device_id    integer(11)  NULL    ,
+  source       varchar(255) NOT NULL DEFAULT device,
+  occurred_at  datetime     NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE rooms
+(
+  id        integer(11)  NOT NULL AUTO_INCREMENT,
+  name      varchar(255) NOT NULL,
+  area      varchar(255) NULL    ,
+  capacity  integer(11)  NOT NULL,
+  tolerance integer(11)  NOT NULL DEFAULT 2,
+  is_active tinyint(1)   NOT NULL DEFAULT 1,
+  PRIMARY KEY (id)
+);
+
+ALTER TABLE child_locations
+  ADD CONSTRAINT FK_children_TO_child_locations
+    FOREIGN KEY (child_id)
+    REFERENCES children (id);
+
+ALTER TABLE child_locations
+  ADD CONSTRAINT FK_rooms_TO_child_locations
+    FOREIGN KEY (room_id)
+    REFERENCES rooms (id);
+
+ALTER TABLE children
+  ADD CONSTRAINT FK_movement_log_TO_children
+    FOREIGN KEY (id)
+    REFERENCES movement_log (child_id);
+
+ALTER TABLE devices
+  ADD CONSTRAINT FK_movement_log_TO_devices
+    FOREIGN KEY (id)
+    REFERENCES movement_log (device_id);
+
+ALTER TABLE devices
+  ADD CONSTRAINT FK_rooms_TO_devices
+    FOREIGN KEY (room_id)
+    REFERENCES rooms (id);
+
+ALTER TABLE movement_log
+  ADD CONSTRAINT FK_rooms_TO_movement_log
+    FOREIGN KEY (from_room_id)
+    REFERENCES rooms (id);
+
+```
+
 ---
 
 ### User Flow
