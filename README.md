@@ -114,7 +114,7 @@ TODO
 
 Darstellung der technischen Architektur (Frontend, Backend, Datenbank, ggf. Hardware-Schicht).
 
-![Lokato Architekturdiagram](docs/diagrams/Lokato-architecture-2025-11-20-234727.svg)
+![Lokato Architekturdiagram](docs/diagrams/Lokato-architecture-2025-11-20-234727.png)
 
 
 ---
