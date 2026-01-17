@@ -128,86 +128,76 @@ Darstellung der technischen Architektur (Frontend, Backend, Datenbank, ggf. Hard
 
 ``` sql
 
-CREATE TABLE child_locations
-(
-  child_id   integer(11) NOT NULL AUTO_INCREMENT,
-  room_id    integer(11) NULL    ,
-  updated_at datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (child_id)
-);
-
-CREATE TABLE children
-(
-  id          integer(11)  NOT NULL AUTO_INCREMENT,
-  name        varchar(255) NOT NULL,
-  photo_url   varchar(255) NULL    ,
-  tracker_uid varchar(255) NOT NULL,
-  is_active   tinyint(1)   NOT NULL DEFAULT 1,
+CREATE TABLE rooms (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name       VARCHAR(100)    NOT NULL,
+  area       VARCHAR(50)     NULL,
+  capacity   INT             NOT NULL,
+  tolerance  INT             NOT NULL DEFAULT 2,
+  is_active  TINYINT(1)      NOT NULL DEFAULT 1,
   PRIMARY KEY (id)
 );
 
-CREATE TABLE devices
-(
-  id         integer(11)  NOT NULL AUTO_INCREMENT,
-  name       varchar(255) NOT NULL,
-  device_key varchar(255) NOT NULL,
-  room_id    integer(11)  NOT NULL,
-  last_seen  datetime     NULL    ,
-  PRIMARY KEY (id)
+CREATE TABLE children (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name        VARCHAR(100)    NOT NULL,
+  photo_url   VARCHAR(255)    NULL,
+  tracker_uid VARCHAR(100)    NOT NULL,
+  is_active   TINYINT(1)      NOT NULL DEFAULT 1,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_children_tracker_uid (tracker_uid)
 );
 
-CREATE TABLE movement_log
-(
-  id           integer(11)  NOT NULL AUTO_INCREMENT,
-  child_id     integer(11)  NOT NULL,
-  from_room_id integer(11)  NULL    ,
-  to_room_id   integer(11)  NULL    ,
-  device_id    integer(11)  NULL    ,
-  source       varchar(255) NOT NULL DEFAULT device,
-  occurred_at  datetime     NOT NULL,
-  PRIMARY KEY (id)
+CREATE TABLE devices (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name       VARCHAR(100)    NOT NULL,
+  device_key CHAR(100)       NOT NULL,
+  room_id    BIGINT UNSIGNED NOT NULL,
+  last_seen  TIMESTAMP       NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_devices_device_key (device_key),
+  KEY idx_devices_room (room_id),
+  CONSTRAINT fk_devices_room
+    FOREIGN KEY (room_id) REFERENCES rooms(id)
 );
 
-CREATE TABLE rooms
-(
-  id        integer(11)  NOT NULL AUTO_INCREMENT,
-  name      varchar(255) NOT NULL,
-  area      varchar(255) NULL    ,
-  capacity  integer(11)  NOT NULL,
-  tolerance integer(11)  NOT NULL DEFAULT 2,
-  is_active tinyint(1)   NOT NULL DEFAULT 1,
-  PRIMARY KEY (id)
+CREATE TABLE child_locations (
+  child_id   BIGINT UNSIGNED NOT NULL,
+  room_id    BIGINT UNSIGNED NULL,
+  updated_at TIMESTAMP       NOT NULL
+              DEFAULT CURRENT_TIMESTAMP
+              ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (child_id),
+  KEY idx_child_locations_room (room_id),
+  CONSTRAINT fk_child_locations_child
+    FOREIGN KEY (child_id) REFERENCES children(id),
+  CONSTRAINT fk_child_locations_room
+    FOREIGN KEY (room_id)  REFERENCES rooms(id)
 );
 
-ALTER TABLE child_locations
-  ADD CONSTRAINT FK_children_TO_child_locations
-    FOREIGN KEY (child_id)
-    REFERENCES children (id);
-
-ALTER TABLE child_locations
-  ADD CONSTRAINT FK_rooms_TO_child_locations
-    FOREIGN KEY (room_id)
-    REFERENCES rooms (id);
-
-ALTER TABLE children
-  ADD CONSTRAINT FK_movement_log_TO_children
-    FOREIGN KEY (id)
-    REFERENCES movement_log (child_id);
-
-ALTER TABLE devices
-  ADD CONSTRAINT FK_movement_log_TO_devices
-    FOREIGN KEY (id)
-    REFERENCES movement_log (device_id);
-
-ALTER TABLE devices
-  ADD CONSTRAINT FK_rooms_TO_devices
-    FOREIGN KEY (room_id)
-    REFERENCES rooms (id);
-
-ALTER TABLE movement_log
-  ADD CONSTRAINT FK_rooms_TO_movement_log
-    FOREIGN KEY (from_room_id)
-    REFERENCES rooms (id);
+CREATE TABLE movement_log (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  child_id     BIGINT UNSIGNED NOT NULL,
+  from_room_id BIGINT UNSIGNED NULL,
+  to_room_id   BIGINT UNSIGNED NULL,
+  device_id    BIGINT UNSIGNED NULL,
+  source       ENUM('device','manual','import')
+               NOT NULL DEFAULT 'device',
+  occurred_at  DATETIME        NOT NULL,
+  PRIMARY KEY (id),
+  KEY idx_mlog_child     (child_id),
+  KEY idx_mlog_from_room (from_room_id),
+  KEY idx_mlog_to_room   (to_room_id),
+  KEY idx_mlog_device    (device_id),
+  CONSTRAINT fk_mlog_child
+    FOREIGN KEY (child_id)     REFERENCES children(id),
+  CONSTRAINT fk_mlog_from_room
+    FOREIGN KEY (from_room_id) REFERENCES rooms(id),
+  CONSTRAINT fk_mlog_to_room
+    FOREIGN KEY (to_room_id)   REFERENCES rooms(id),
+  CONSTRAINT fk_mlog_device
+    FOREIGN KEY (device_id)    REFERENCES devices(id)
+);
 
 ```
 
