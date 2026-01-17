@@ -17,13 +17,17 @@ USAGE
 CHECK_ONLY=false
 WITH_NGINX=false
 
-for arg in "${@:-}"; do
-  case "$arg" in
-    --check-only) CHECK_ONLY=true ;;
-    --with-nginx) WITH_NGINX=true ;;
-    *) print_usage; exit 1 ;;
-  esac
-done
+# only parse args if there are any
+if [[ $# -gt 0 ]]; then
+  for arg in "$@"; do
+    case "$arg" in
+      --check-only) CHECK_ONLY=true ;;
+      --with-nginx) WITH_NGINX=true ;;
+      -h|--help) print_usage; exit 0 ;;
+      *) echo "Unknown option: $arg"; print_usage; exit 1 ;;
+    esac
+  done
+fi
 
 if [[ "$(id -u)" -eq 0 ]]; then
   echo "Please run this script as your normal user (it will use sudo when needed)."
@@ -33,7 +37,6 @@ fi
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 has_node() { command_exists node || command_exists nodejs; }
 
-# Packages we want to ensure exist
 BASE_PKGS=(git curl unzip ca-certificates gnupg)
 PHP_PKGS=(php php-fpm php-mysql php-xml php-mbstring php-curl php-zip php-bcmath php-intl)
 COMPOSER_PKG=(composer)
@@ -47,10 +50,8 @@ if command_exists git; then echo "✅ Git found"; else echo "❌ Git missing"; r
 if command_exists curl; then echo "✅ curl found"; else echo "❌ curl missing"; report_missing_pkg "curl"; fi
 if command_exists docker; then echo "✅ Docker found"; else echo "❌ Docker missing"; report_missing_pkg "Docker"; fi
 
-# PHP: check php command (extensions will be ensured during install phase)
 if command_exists php; then echo "✅ PHP found"; else echo "❌ PHP missing"; report_missing_pkg "PHP"; fi
 
-# Composer: NOT optional
 if command_exists composer; then
   echo "✅ Composer found"
 else
@@ -58,14 +59,12 @@ else
   report_missing_pkg "Composer"
 fi
 
-# Optional nginx
 if "$WITH_NGINX"; then
   if command_exists nginx; then echo "✅ Nginx found"; else echo "❌ Nginx missing"; report_missing_pkg "Nginx"; fi
 else
   echo "ℹ️ Nginx optional (skipping check). Use --with-nginx to enable."
 fi
 
-# Node: accept node or nodejs
 if has_node; then
   echo "✅ Node.js found"
 else
@@ -73,7 +72,6 @@ else
   report_missing_pkg "Node.js"
 fi
 
-# Docker Compose v2 check
 if command_exists docker; then
   if docker compose version >/dev/null 2>&1; then
     echo "✅ Docker Compose found"
@@ -131,7 +129,6 @@ sudo apt install -y "${PHP_PKGS[@]}"
 echo "Ensuring Composer..."
 sudo apt install -y "${COMPOSER_PKG[@]}"
 
-# Verify composer (hard fail if missing)
 if ! command_exists composer; then
   echo "❌ Composer installation failed."
   exit 1
@@ -183,7 +180,6 @@ if ! has_node; then
   fi
 fi
 
-# --- Show versions ---
 echo
 if command_exists php; then
   echo "✅ PHP version: $(php -v | head -n 1)"
