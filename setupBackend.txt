@@ -1,374 +1,94 @@
-Terminal 1:
-lokato@lokato:~ $ cd lokato-platform/
-lokato@lokato:~/lokato-platform $ git fetch
-fatal: unable to access 'https://github.com/lokato-at/lokato-platform.git/': Could not resolve host: github.com
-lokato@lokato:~/lokato-platform $ git fetch
-fatal: unable to access 'https://github.com/lokato-at/lokato-platform.git/': Could not resolve host: github.com
-lokato@lokato:~/lokato-platform $ git fetch
-fatal: unable to access 'https://github.com/lokato-at/lokato-platform.git/': Could not resolve host: github.com
-lokato@lokato:~/lokato-platform $ git fetch
-remote: Enumerating objects: 28, done.
-remote: Counting objects: 100% (28/28), done.
-remote: Compressing objects: 100% (15/15), done.
-remote: Total 28 (delta 13), reused 23 (delta 12), pack-reused 0 (from 0)
-Unpacking objects: 100% (28/28), 10.30 KiB | 263.00 KiB/s, done.
-From https://github.com/lokato-at/lokato-platform
-   37f47bf..2dd504f  main       -> origin/main
- * [new branch]      codex/fix-laravel-backend-scan-entry-storage -> origin/codex/fix-laravel-backend-scan-entry-storage
-lokato@lokato:~/lokato-platform $ git pull
-error: cannot pull with rebase: You have unstaged changes.
-error: Please commit or stash them.
-lokato@lokato:~/lokato-platform $ git stash push -m "temp"
-Saved working directory and index state On main: temp
-error: unable to unlink old 'docker/mosquitto/config/mosquitto.conf': Permission denied
-error: unable to unlink old 'docker/mosquitto/log/mosquitto.log': Permission denied
-fatal: Could not reset index file to revision 'HEAD'.
-lokato@lokato:~/lokato-platform $ git pull
-error: cannot pull with rebase: You have unstaged changes.
-error: Please commit or stash them.
-lokato@lokato:~/lokato-platform $ git pull
-error: cannot pull with rebase: You have unstaged changes.
-error: Please commit or stash them.
-lokato@lokato:~/lokato-platform $ git stash push -m "temp"
-Saved working directory and index state On main: temp
-lokato@lokato:~/lokato-platform $ git pull
-Updating 37f47bf..2dd504f
-Fast-forward
- backend/app/Console/Commands/MqttScanListener.php  |  52 ++++++
- .../app/Console/Commands/MqttSubscribeCommand.php  | 185 ++++++++++++++-------
- backend/app/Console/Kernel.php                     |   3 -
- backend/composer.json                              |   3 +-
- backend/composer.lock                              |  67 +++++++-
- backend/config/mqtt-client.php                     | 123 ++++++++++++++
- backend/config/mqtt.php                            |  10 --
- ...2025_01_01_000400_create_movement_log_table.php |   3 +-
- 8 files changed, 370 insertions(+), 76 deletions(-)
- create mode 100644 backend/app/Console/Commands/MqttScanListener.php
- delete mode 100644 backend/app/Console/Kernel.php
- create mode 100644 backend/config/mqtt-client.php
- delete mode 100644 backend/config/mqtt.php
-lokato@lokato:~/lokato-platform $ cd docker
-lokato@lokato:~/lokato-platform/docker $ docker compose down
-[+] down 4/4
- ✔ Container lokato-mosquitto  Removed                                     0.8s 
- ✔ Container lokato-phpmyadmin Removed                                     0.1s 
- ✔ Container lokato-mysql      Removed                                     1.6s 
- ✔ Network docker_default      Removed                                     0.3s 
-lokato@lokato:~/lokato-platform/docker $ docker compose up -d
-WARN[0000] No services to build                         
-[+] up 5/5
- ✔ Network docker_default      Created                                     0.1s 
-[+] up 5/5er lokato-mosquitto  Created                                     0.5s 
- ✔ Network docker_default      Created                                     0.1s 
-[+] up 5/5er lokato-mosquitto  Created                                     0.5s 
- ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s [+] up 5/5er lokato-mosquitto  Created                                     0.5s  ✔ Network docker_default      Created                                     0.1s  ✔ Container lokato-mosquitto  Created                                     0.5s  ✔ Container lokato-mysql      Created                                     0.5s  ✔ Container lokato-phpmyadmin Created                                     0.3s  ! phpmyadmin                  The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested 0.0s 
-lokato@lokato:~/lokato-platform/docker $ cd ..
-lokato@lokato:~/lokato-platform $ cd backend/
-lokato@lokato:~/lokato-platform/backend $ php artisan migrate:reset
+Voraussetzungen (einmalig):
 
-   INFO  Rolling back migrations.  
-
-  2025_13_12_0000001_create_alerts_table ........................ 66.87ms DONE
-  2025_11_17_213012_create_personal_access_tokens_table ......... 45.79ms DONE
-  2025_01_01_000400_create_movement_log_table .................. 198.60ms DONE
-  2025_01_01_000300_create_child_locations_table ................ 77.21ms DONE
-  2025_01_01_000200_create_devices_table ........................ 37.57ms DONE
-  2025_01_01_000100_create_rooms_table .......................... 38.35ms DONE
-  2025_01_01_000000_create_children_table ....................... 32.76ms DONE
-  0001_01_01_000002_create_jobs_table .......................... 122.35ms DONE
-  0001_01_01_000001_create_cache_table .......................... 66.63ms DONE
-  0001_01_01_000000_create_users_table ......................... 124.80ms DONE
-
-lokato@lokato:~/lokato-platform/backend $ php artisan migrate --seed
-
-   INFO  Running migrations.  
-
-  0001_01_01_000000_create_users_table ......................... 664.10ms DONE
-  0001_01_01_000001_create_cache_table ......................... 545.72ms DONE
-  0001_01_01_000002_create_jobs_table .......................... 833.27ms DONE
-  2025_01_01_000000_create_children_table ....................... 92.45ms DONE
-  2025_01_01_000100_create_rooms_table .......................... 50.47ms DONE
-  2025_01_01_000200_create_devices_table ....................... 241.62ms DONE
-  2025_01_01_000300_create_child_locations_table ............... 292.47ms DONE
-  2025_01_01_000400_create_movement_log_table .................. 745.90ms DONE
-  2025_11_17_213012_create_personal_access_tokens_table ........ 178.74ms DONE
-  2025_13_12_0000001_create_alerts_table ....................... 183.83ms DONE
-
-
-   INFO  Seeding database.  
-
-  Database\Seeders\RoomSeeder ........................................ RUNNING  
-  Database\Seeders\RoomSeeder ..................................... 24 ms DONE  
-
-  Database\Seeders\ChildSeeder ....................................... RUNNING  
-  Database\Seeders\ChildSeeder .................................... 13 ms DONE  
-
-  Database\Seeders\DeviceSeeder ...................................... RUNNING  
-  Database\Seeders\DeviceSeeder ................................... 41 ms DONE  
-
-lokato@lokato:~/lokato-platform/backend $ php artisan config:clear
-
-   INFO  Configuration cache cleared successfully.  
-
-lokato@lokato:~/lokato-platform/backend $ php artisan config:cache
-
-   INFO  Configuration cached successfully.  
-
-lokato@lokato:~/lokato-platform/backend $ cd ..
-lokato@lokato:~/lokato-platform $ cd frontend/
-lokato@lokato:~/lokato-platform/frontend $ npm run dev
-
-> frontend@0.0.0 dev
-> vite
-
-
-  VITE v7.2.2  ready in 4382 ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-  ➜  Vue DevTools: Open http://localhost:5173/__devtools__/ as a separate window
-  ➜  Vue DevTools: Press Alt(⌥)+Shift(⇧)+D in App to toggle the Vue DevTools
-  ➜  press h + enter to show help
-
-
-Terminal 2:
-lokato@lokato:~ $ cd lokato-platform/backend
-lokato@lokato:~/lokato-platform/backend $ docker ps
-CONTAINER ID   IMAGE                          COMMAND                  CREATED      STATUS                           PORTS                                                    NAMES
-8f4eb3f0f445   phpmyadmin/phpmyadmin:latest   "/docker-entrypoint.…"   6 days ago   Restarting (255) 2 seconds ago                                                            lokato-phpmyadmin
-05d4f513e975   mysql:8.0                      "docker-entrypoint.s…"   6 days ago   Up 17 minutes                    0.0.0.0:3306->3306/tcp, [::]:3306->3306/tcp, 33060/tcp   lokato-mysql
-66d38879de84   eclipse-mosquitto:2            "/docker-entrypoint.…"   6 days ago   Up 17 minutes                    0.0.0.0:1883->1883/tcp, [::]:1883->1883/tcp              lokato-mosquitto
-lokato@lokato:~/lokato-platform/backend $ docker compose up -d
-no configuration file provided: not found
-lokato@lokato:~/lokato-platform/backend $ php artisan optimize:clear
-
-   INFO  Clearing cached bootstrap files.  
-
-  config ......................................................................... 9.48ms DONE
-  cache ......................................................................... 93.29ms DONE
-  compiled ....................................................................... 4.00ms DONE
-  events ......................................................................... 1.93ms DONE
-  routes ......................................................................... 1.95ms DONE
-  views ......................................................................... 32.48ms DONE
-
-lokato@lokato:~/lokato-platform/backend $ php artisan migrate
-
-   INFO  Nothing to migrate.  
-
-lokato@lokato:~/lokato-platform/backend $ php artisan serve --host=0.0.0.0 --port=8001
-
-   INFO  Server running on [http://0.0.0.0:8001].  
-
-  Press Ctrl+C to stop the server
-
-^Clokato@lokato:~/lokato-platform/backend $ hostname -I
-172.18.0.1 172.17.0.1 
-lokato@lokato:~/lokato-platform/backend $ php artisan serve --host=0.0.0.0 --port=8001
-
-   INFO  Server running on [http://0.0.0.0:8001].  
-
-  Press Ctrl+C to stop the server
-
-^Clokato@lokato:~/lokato-platform/backend $ php artisan serve --host=0.0.0.0 --port=8001
-
-   INFO  Server running on [http://0.0.0.0:8001].  
-
-  Press Ctrl+C to stop the server
-
-  2026-01-29 11:14:44 /api/v1/rooms .................................................... ~ 1s
-  2026-01-29 11:14:45 /api/v1/rooms/1/occupancy .................................. ~ 500.87ms
-  2026-01-29 11:14:47 /api/v1/rooms/3/occupancy .................................... ~ 0.79ms
-  2026-01-29 11:14:47 /api/v1/rooms/2/occupancy .................................... ~ 0.54ms
-  2026-01-29 11:14:47 /api/v1/movement-log ......................................... ~ 0.37ms
-  2026-01-29 11:14:47 /api/stream/dashboard ........................................ ~ 1m 31s
-  2026-01-29 11:16:18 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:17:18 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:18:19 /api/stream/dashboard ........................................... ~ 15s
-  2026-01-29 11:18:19 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:19:20 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:20:20 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:21:21 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:22:21 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:23:22 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:24:22 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:25:23 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:26:23 /api/stream/dashboard ........................................... ~ 30s
-  2026-01-29 11:26:54 /api/v1/admin/children ....................................... ~ 0.45ms
-  2026-01-29 11:26:54 /api/v1/admin/rooms .......................................... ~ 9.60ms
-  2026-01-29 11:26:54 /api/v1/admin/devices ........................................ ~ 7.08ms
-  2026-01-29 11:28:57 /api/v1/admin/children ....................................... ~ 0.44ms
-  2026-01-29 11:29:14 /api/v1/admin/children ....................................... ~ 0.48ms
-  2026-01-29 11:29:14 /api/v1/admin/children ....................................... ~ 0.35ms
-  2026-01-29 11:29:14 /api/v1/admin/children ....................................... ~ 0.45ms
-  2026-01-29 11:29:17 /api/v1/rooms ................................................ ~ 0.46ms
-  2026-01-29 11:29:17 /api/v1/rooms/1/occupancy .................................... ~ 0.70ms
-  2026-01-29 11:29:17 /api/v1/rooms/3/occupancy .................................... ~ 0.56ms
-  2026-01-29 11:29:17 /api/v1/rooms/2/occupancy .................................... ~ 0.49ms
-  2026-01-29 11:29:17 /api/v1/movement-log ......................................... ~ 0.31ms
-  2026-01-29 11:29:17 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:30:18 /api/v1/admin/children ....................................... ~ 0.71ms
-  2026-01-29 11:30:18 /api/v1/admin/rooms ........................................ ~ 509.40ms
-  2026-01-29 11:30:18 /api/v1/admin/devices ...................................... ~ 506.60ms
-  2026-01-29 11:30:18 /api/stream/dashboard ........................................ ~ 1m 45s
-  2026-01-29 11:32:04 /api/v1/admin/children ....................................... ~ 0.44ms
-  2026-01-29 11:32:04 /api/v1/admin/rooms .......................................... ~ 7.10ms
-  2026-01-29 11:32:04 /api/v1/admin/devices ........................................ ~ 6.85ms
-  2026-01-29 11:32:04 /api/v1/admin/children ....................................... ~ 6.55ms
-  2026-01-29 11:32:04 /api/v1/scan ............................................... ~ 506.69ms
-  2026-01-29 11:32:04 /api/v1/scan ............................................... ~ 507.44ms
-  2026-01-29 11:32:04 /api/v1/admin/devices ........................................ ~ 6.52ms
-  2026-01-29 11:32:10 /api/v1/rooms ................................................ ~ 0.42ms
-  2026-01-29 11:32:10 /api/v1/rooms/1/occupancy .................................... ~ 0.80ms
-  2026-01-29 11:32:10 /api/v1/rooms/3/occupancy .................................... ~ 0.26ms
-  2026-01-29 11:32:10 /api/v1/rooms/2/occupancy .................................... ~ 0.53ms
-  2026-01-29 11:32:10 /api/v1/movement-log ....................................... ~ 500.74ms
-  2026-01-29 11:32:10 /api/stream/dashboard ........................................... ~ 30s
-  2026-01-29 11:32:40 /api/v1/admin/children ....................................... ~ 1.87ms
-  2026-01-29 11:32:40 /api/v1/admin/rooms ......................................... ~ 11.19ms
-  2026-01-29 11:32:40 /api/v1/admin/devices ........................................ ~ 9.81ms
-  2026-01-29 11:32:40 /api/v1/admin/children ....................................... ~ 9.09ms
-  2026-01-29 11:32:40 /api/v1/scan ............................................... ~ 508.34ms
-  2026-01-29 11:32:41 /api/v1/admin/devices ........................................ ~ 0.22ms
-  2026-01-29 11:32:41 /api/v1/scan ................................................. ~ 0.34ms
-  2026-01-29 11:32:44 /api/v1/rooms .............................................. ~ 501.07ms
-  2026-01-29 11:32:44 /api/v1/rooms/1/occupancy .................................... ~ 0.26ms
-  2026-01-29 11:32:44 /api/v1/rooms/3/occupancy .................................... ~ 0.24ms
-  2026-01-29 11:32:44 /api/v1/rooms/2/occupancy .................................... ~ 0.22ms
-  2026-01-29 11:32:44 /api/v1/movement-log ......................................... ~ 0.23ms
-  2026-01-29 11:32:45 /api/stream/dashboard ........................................ ~ 7m 48s
-  2026-01-29 11:40:33 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:41:34 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:42:34 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:43:35 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:44:35 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:45:36 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:46:36 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:47:37 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:48:38 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:49:38 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:50:39 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:51:39 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:52:40 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:53:40 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:54:41 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:55:41 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:56:42 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:57:42 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:58:43 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 11:59:44 /api/stream/dashboard ........................................... ~ 38s
-  2026-01-29 12:00:22 /api/stream/dashboard ........................................... ~ 30s
-  2026-01-29 12:00:52 /api/v1/rooms ................................................ ~ 0.26ms
-  2026-01-29 12:00:52 /api/stream/dashboard ........................................... ~ 15s
-  2026-01-29 12:00:53 /api/v1/rooms ................................................... ~ 15s
-  2026-01-29 12:01:08 /api/v1/rooms/1/occupancy .................................... ~ 0.21ms
-  2026-01-29 12:01:08 /api/v1/rooms/3/occupancy .................................... ~ 0.21ms
-  2026-01-29 12:01:08 /api/v1/rooms/2/occupancy .................................... ~ 0.20ms
-  2026-01-29 12:01:08 /api/v1/movement-log ......................................... ~ 0.21ms
-  2026-01-29 12:01:08 /api/stream/dashboard ........................................... ~ 30s
-  2026-01-29 12:01:38 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 12:02:39 /api/stream/dashboard ........................................... ~ 30s
-  2026-01-29 12:03:10 /api/stream/dashboard ........................................ ~ 1m 31s
-  2026-01-29 12:04:41 /api/stream/dashboard ......................................... ~ 1m 1s
-  2026-01-29 12:05:42 /api/stream/dashboard ......................................... ~ 1m 1s
-  2026-01-29 12:06:43 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 12:07:44 /api/stream/dashboard ......................................... ~ 1m 1s
-  2026-01-29 12:08:45 /api/stream/dashboard ............................................ ~ 1m
-  2026-01-29 12:09:52 /api/v1/rooms ................................................ ~ 1.62ms
-  2026-01-29 12:09:52 /api/v1/rooms/1/occupancy .................................... ~ 0.56ms
-  2026-01-29 12:09:52 /api/v1/rooms/3/occupancy .................................... ~ 0.46ms
-  2026-01-29 12:09:52 /api/v1/rooms/2/occupancy .................................... ~ 2.54ms
-  2026-01-29 12:09:52 /api/v1/movement-log ....................................... ~ 502.87ms
-  2026-01-29 12:09:53 /api/stream/dashboard ......................................... ~ 1m 1s
-  2026-01-29 12:10:54 /api/stream/dashboard ........................................... ~ 45s
-
-
-
-Terminal 3:
-lokato@lokato:~ $ docker exec -it lokato-mosquitto mosquitto_sub -t "lokato/v1/devices/+/scan" -v
-^Clokato@lokato:~ $ docker exec -it lokato-mosquitto mosquitto_pub -t "lokato/v1evices/RaspberryChild02/scan" -m "{"tracker_uid":"TEST"}"
-lokato@lokato:~ $ docker exec -it lokato-mosquitto mosquitto_sub -h 127.0.0.1 -p 1883 -v -t "api/v1/scan"
-^Clokato@lokato:~ $ docker exec -it lokato-mosquitto mosquitto_sub -h 127.0.0.1 -p 1883 -v -t "api/v1/scan"
+Raspberry Pi mit Internet
+Docker + Docker Compose installiert
+PHP + Composer installiert
+Node + npm installiert
+Repository lokato-platform vorhanden
 
 
 
 
+Terminal 1 – Docker Services starten (Mosquitto + MySQL):
+
+cd ~/lokato-platform/docker
+docker compose down
+docker compose up -d
 
 
-Terminal 4:
-lokato@lokato:~ $ cd lokato-platform/backend/
-lokato@lokato:~/lokato-platform/backend $ php artisan mqtt:subscribe
-Connecting to MQTT broker at 127.0.0.1:1883 as lokato-backend-6002
-Subscribing to topic: /api/v1/scan
-^C
-lokato@lokato:~/lokato-platform/backend $ php artisan mqtt:subscribe --debug
-MQTT CONFIG: {"host":"127.0.0.1","port":"1883","client_id":"lokato-laravel-subscriber-13577","topic":"/api/v1/scan","qos":0,"max_payload_bytes":4096}
+Prüfen:
 
-   Error 
+docker ps
 
-  Class "PhpMqtt\Client\Facades\MQTT" not found
 
-  at app/Console/Commands/MqttSubscribeCommand.php:40
-     36▕                 'max_payload_bytes' => $maxPayloadBytes,
-     37▕             ], JSON_UNESCAPED_SLASHES));
-     38▕ 
-     39▕         /** @var \PhpMqtt\Client\Contracts\MqttClient $mqtt */
-  ➜  40▕         $mqtt = MQTT::connection(); // nutzt default_connection aus config/mqtt-client.php
-     41▕ 
-     42▕         $self = $this;
-     43▕ 
-     44▕         $self->info("Subscribing to {$topic} (QoS {$qos}) ...");
+Man muss mindestens sehen:
 
-      +13 vendor frames 
-
-  14  artisan:16
-      Illuminate\Foundation\Application::handleCommand()
-
-lokato@lokato:~/lokato-platform/backend $ composer install
-Installing dependencies from lock file (including require-dev)
-Verifying lock file contents can be installed on current platform.
-Package operations: 1 install, 0 updates, 0 removals
-  - Installing php-mqtt/laravel-client (v1.7.0): Extracting archive
-Package doctrine/annotations is abandoned, you should avoid using it. No replacement was suggested.
-Generating optimized autoload files
-> Illuminate\Foundation\ComposerScripts::postAutoloadDump
-> @php artisan package:discover --ansi
-
-   INFO  Discovering packages.  
-
-  darkaonline/l5-swagger ................................................ DONE
-  laravel/boost ......................................................... DONE
-  laravel/mcp ........................................................... DONE
-  laravel/pail .......................................................... DONE
-  laravel/roster ........................................................ DONE
-  laravel/sail .......................................................... DONE
-  laravel/sanctum ....................................................... DONE
-  laravel/tinker ........................................................ DONE
-  nesbot/carbon ......................................................... DONE
-  nunomaduro/collision .................................................. DONE
-  nunomaduro/termwind ................................................... DONE
-  pestphp/pest-plugin-laravel ........................................... DONE
-  php-mqtt/laravel-client ............................................... DONE
-
-88 packages you are using are looking for funding.
-Use the `composer fund` command to find out more!
-lokato@lokato:~/lokato-platform/backend $ php artisan mqtt:subscribe --debug
-MQTT CONFIG: {"host":"127.0.0.1","port":"1883","client_id":"laravel-scan-listener-13732","topic":"/api/v1/scan","qos":0,"max_payload_bytes":4096}
-Subscribing to /api/v1/scan (QoS 0) ...
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X80691500005023FDD535FCBB"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X80691500004023FDD531FC6D"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
-MQTT RECEIVED /api/v1/scan (len=76): {"device_key":"RaspberryChild02","tracker_uid":"0X000017570D02640950B9462C"}
+lokato-mosquitto
+lokato-mysql
 
 
 
+
+Terminal 2 – Backend vorbereiten (Laravel)
+
+cd ~/lokato-platform/backend
+
+
+1. Abhängigkeiten installieren (wichtig nach Pull!)
+
+composer install
+
+
+2. Cache zurücksetzen
+
+php artisan optimize:clear
+php artisan config:clear
+php artisan config:cache
+
+
+3. Datenbank neu aufsetzen
+
+php artisan migrate:reset
+php artisan migrate --seed
+
+
+
+
+Terminal 3 – Backend HTTP-Server starten
+
+cd ~/lokato-platform/backend
+php artisan serve --host=0.0.0.0 --port=8001
+
+
+Erfolgreich wenn:
+
+Server running on http://0.0.0.0:8001
+
+Der Server muss laufen bleiben.
+
+
+
+
+Terminal 4 – MQTT Scan Listener starten:
+
+
+cd ~/lokato-platform/backend
+php artisan mqtt:subscribe --debug
+
+
+Man muss sehen:
+
+Subscribing to /api/v1/scan
+
+
+Und bei Scans vom ESP32:
+
+MQTT RECEIVED /api/v1/scan:
+{"device_key":"RaspberryChild02","tracker_uid":"0X..."}
+
+
+Das ist der Beweis, dass:
+
+ESP32 sendet
+Mosquitto empfängt
+Backend hört zu
