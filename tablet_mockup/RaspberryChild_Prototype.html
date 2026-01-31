@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Grid Prototype</title>
+    <style>
+        :root {
+            --border: #2f98d9;
+            --cell-bg: #fff;
+            --plus-size: 40px;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: #faf7f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #222;
+        }
+
+        .frame {
+            border: 8px solid var(--border);
+            padding: 20px;
+            background: white;
+            box-shadow: 0 8px 60px rgba(0, 0, 0, 0.08);
+            max-width: 1000px;
+            width: 90vw;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-weight: 700;
+        }
+
+        .counter {
+            font-size: 14px;
+            background: #fff6ee;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #ffd9c0;
+        }
+
+        /* 🟢 Das ist der wichtige Teil */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            border: 1px solid #ccc;
+            background: #eee;
+            width: 100%;
+        }
+
+        .cell {
+            background: var(--cell-bg);
+            border: 1px solid #ccc;
+            min-height: 150px; /* 🔥 jetzt sichtbar */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .plus-btn,
+        .animal-btn {
+            font-size: 64px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+        }
+
+        .locked {
+            font-size: 36px;
+            color: red;
+            font-weight: bold;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .animals-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .animals-list button {
+            font-size: 32px;
+            border: none;
+            background: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="frame" id="app">
+    <div class="topbar">
+        <div class="title">Raumbelegung </div>
+        <div class="counter" id="counter">Belegt: 0</div>
+    </div>
+    <div class="grid" id="grid"></div>
+</div>
+
+<script>
+    // === SETTINGS ===
+    const rows = 3, cols = 4;
+    const lockedCells = [9,10,11];
+    const maxOccupancy = 9;
+    const animals = ['🐱','🐶','🐦','🦔','🦆','🐴','🐫','🐰','🐯','🐬','🦈','🦊','🐷','🐮','🐵','🐸'];
+
+    let used = new Set();
+    let state = Array(rows * cols).fill(null);
+
+    const gridEl = document.getElementById('grid');
+    const counterEl = document.getElementById('counter');
+
+    // === INIT GRID ===
+    function createGrid() {
+        gridEl.innerHTML = '';
+        for (let i = 0; i < rows * cols; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.index = i;
+
+            if (lockedCells.includes(i)) {
+                const x = document.createElement('div');
+                x.className = 'locked';
+                x.textContent = 'X';
+                cell.appendChild(x);
+                state[i] = 'locked';
+            } else {
+                const btn = document.createElement('button');
+                btn.className = 'plus-btn';
+                btn.textContent = '+';
+                btn.onclick = () => openPopup(i);
+                cell.appendChild(btn);
+            }
+            gridEl.appendChild(cell);
+        }
+        updateCounter();
+    }
+
+    // === COUNTER ===
+    function updateCounter() {
+        const count = state.filter(v => v && v !== 'locked').length;
+        counterEl.textContent = `Belegt: ${count}`;
+    }
+
+    // === POPUP ===
+    let popup = null;
+    let overlay = null;
+
+    function openPopup(index) {
+        if (state[index] === 'locked') return;
+
+        closePopup();
+
+        overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.onclick = closePopup;
+        document.body.appendChild(overlay);
+
+        popup = document.createElement('div');
+        popup.className = 'popup';
+        popup.innerHTML = '<h4>Tier auswählen</h4>';
+
+        const list = document.createElement('div');
+        list.className = 'animals-list';
+
+        animals.forEach(a => {
+            const b = document.createElement('button');
+            b.textContent = a;
+            if (used.has(a)) {
+                b.disabled = true;
+                b.style.opacity = '0.4';
+            } else {
+                b.onclick = () => selectAnimal(index, a);
+            }
+            list.appendChild(b);
+        });
+
+        popup.appendChild(list);
+        document.body.appendChild(popup);
+    }
+
+    function closePopup() {
+        if (popup) popup.remove();
+        if (overlay) overlay.remove();
+        popup = overlay = null;
+    }
+
+    function selectAnimal(index, emoji) {
+        used.add(emoji);
+        state[index] = emoji;
+        refreshCell(index);
+        closePopup();
+    }
+
+    function refreshCell(index) {
+        const cell = gridEl.querySelector(`.cell[data-index="${index}"]`);
+        if (!cell) return;
+        cell.innerHTML = '';
+        if (state[index] && state[index] !== 'locked') {
+            const b = document.createElement('button');
+            b.className = 'animal-btn';
+            b.textContent = state[index];
+            b.onclick = () => removeAnimal(index);
+            cell.appendChild(b);
+        } else if (state[index] === 'locked') {
+            const x = document.createElement('div');
+            x.className = 'locked';
+            x.textContent = 'X';
+            cell.appendChild(x);
+        } else {
+            const plus = document.createElement('button');
+            plus.className = 'plus-btn';
+            plus.textContent = '+';
+            plus.onclick = () => openPopup(index);
+            cell.appendChild(plus);
+        }
+        updateCounter();
+    }
+
+    function removeAnimal(index) {
+        if (state[index] && state[index] !== 'locked') {
+            used.delete(state[index]);
+            state[index] = null;
+            refreshCell(index);
+        }
+    }
+
+    createGrid();
+</script>
+
+</body>
+</html>
