@@ -77,7 +77,7 @@ Die folgende Architektur visualisiert diesen Aufbau sowie den Datenfluss vom Sca
 
 Dieses Entity-Relationship-Diagramm beschreibt die zugrunde liegende Datenstruktur und deren Beziehungen.
 
-![Lokato Datenmodel](docs/diagrams/Lokato ERD-2026-02-01.svg)
+![Lokato Datenmodel](docs/diagrams/Lokato-ERD-2026-02-01.svg)
 
 ---
 
