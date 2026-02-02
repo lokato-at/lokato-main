@@ -1,0 +1,65 @@
+---
+config:
+  layout: elk
+---
+erDiagram
+    direction LR
+
+    ROOMS {
+        BIGINT id PK ""
+        VARCHAR name 
+        VARCHAR area 
+        INT capacity 
+        INT tolerance
+        BOOLEAN is_active 
+    }
+
+    CHILDREN {
+        BIGINT id PK 
+        VARCHAR name 
+        VARCHAR photo_url 
+        VARCHAR tracker_uid UK
+        BOOLEAN is_active 
+    }
+
+    DEVICES {
+        BIGINT id PK 
+        VARCHAR name 
+        CHAR device_key UK 
+        BIGINT room_id FK
+        TIMESTAMP last_seen
+    }
+
+    CHILD_LOCATIONS {
+        BIGINT child_id PK,FK 
+        BIGINT room_id FK 
+        TIMESTAMP updated_at 
+    }
+
+    MOVEMENT_LOG {
+        BIGINT id PK 
+        BIGINT child_id FK 
+        BIGINT from_room_id FK 
+        BIGINT to_room_id FK
+        BIGINT device_id FK 
+        ENUM source "manual | api | mqtt_scanner"
+        DATETIME occurred_at 
+    }
+
+    ALERTS {
+        BIGINT id PK 
+        BIGINT room_id FK 
+        VARCHAR level 
+        VARCHAR message 
+        DATETIME created_at
+        DATETIME resolved_at 
+    }
+
+    ROOMS ||--o{ DEVICES : "has"
+    CHILDREN ||--o| CHILD_LOCATIONS : "has_location"
+    ROOMS ||--o{ CHILD_LOCATIONS : "contains"
+    CHILDREN ||--o{ MOVEMENT_LOG : "moves"
+    ROOMS ||--o{ MOVEMENT_LOG : "from_room"
+    ROOMS ||--o{ MOVEMENT_LOG : "to_room"
+    DEVICES ||--o{ MOVEMENT_LOG : "via"
+    ROOMS ||--o{ ALERTS : "has_alerts"

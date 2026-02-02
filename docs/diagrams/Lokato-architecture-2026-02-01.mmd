@@ -1,0 +1,134 @@
+---
+config:
+  layout: dagre
+  theme: mc
+  look: classic
+  themeVariables:
+    fontSize: 22px
+---
+flowchart LR
+
+%% ---------- Header styles (left aligned) ----------
+classDef hdr36 fill:transparent,stroke:transparent,color:#111827,font-size:36px,text-align:left;
+classDef hdr28 fill:transparent,stroke:transparent,color:#111827,font-size:28px,text-align:left;
+
+%% =========================
+%% CLIENT
+%% =========================
+subgraph Client[" "]
+  direction TB
+  C_HDR["<div style='white-space:nowrap; font-weight:bold; text-align:left;'>Endgeräte</div>"]:::hdr36
+  subgraph User[" "]
+    direction LR
+    U_Child(["Kind<br>(mit Tracker)"])
+    U_Parent(["Elternteil"])
+    U_Carer(["Betreuer*in"])
+    FE@{ label: "<img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vuejs/vuejs-original-wordmark.svg\" width='40'><br>Browser-Frontend<br>Vue.js 3 / TypeScript / Pinia" }
+  end
+end
+
+%% =========================
+%% BACKEND
+%% =========================
+subgraph Backend[" "]
+  direction TB
+  B_HDR["<div style='white-space:nowrap; font-weight:bold; text-align:left;'>Backend&nbsp;/&nbsp;Server</div>"]:::hdr28
+  API["REST API<br>(JSON)"]
+  BE@{ label: "<img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/laravel/laravel-original-wordmark.svg\" width='60'><br>Laravel Backend<br>(PHP)<br>REST + SSE + MQTT Subscriber" }
+end
+
+%% =========================
+%% DOCKER (header like all others; logo as separate node)
+%% =========================
+subgraph Docker[" "]
+  direction TB
+  D_TTL["<div style='white-space:nowrap; font-weight:bold; text-align:left;'>Docker Container</div>"]:::hdr28
+  D_LOGO@{ label: "<img src='https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original-wordmark.svg' width='60'><b>" }
+  direction LR
+  MQTTB["MQTT Broker"]
+  DB@{ label: "<img src='https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mysql/mysql-original-wordmark.svg' width='80'><br>MySQL Datenbank" }
+end
+
+%% Make logo look like a header decoration (no border)
+style D_LOGO fill:transparent,stroke:transparent
+
+%% keep logo in Docker box but don't show lines
+D_LOGO --- MQTTB
+D_LOGO --- DB
+linkStyle 0 stroke:transparent
+linkStyle 1 stroke:transparent
+
+%% =========================
+%% LOCAL
+%% =========================
+subgraph Local[" "]
+  direction LR
+  L_HDR["<div style='white-space:nowrap; font-weight:bold; text-align:left;'>Raspberry&nbsp;Pi im Hort&nbsp;WLAN</div>"]:::hdr36
+
+  subgraph LocalRow[" "]
+    direction LR
+    Backend
+    Docker
+  end
+end
+
+%% =========================
+%% HARDWARE
+%% =========================
+subgraph Hardware[" "]
+  direction TB
+  H_HDR["<div style='white-space:nowrap; font-weight:bold; text-align:left;'>Hardware&nbsp;/&nbsp;IOT</div>"]:::hdr36
+
+  subgraph Scan[" "]
+    direction TB
+    S_HDR["<div style='white-space:nowrap; font-weight:bold; text-align:left;'>Scanner Setup (pro Tür)</div>"]:::hdr28
+    direction LR
+    RFID["UHF RFID Reader<br>+ Antenne"]
+    ESP["ESP32"]
+    DISP["Raumdisplay<br>(Auslastung / Belegung)"]
+  end
+end
+
+%% =========================
+%% FLOWS
+%% =========================
+U_Child -- "Browser-UI" --> FE
+U_Parent -- "Browser-UI" --> FE
+U_Carer -- "Browser-UI" --> FE
+
+FE -- "REST / JSON Requests" --> API
+API -- "JSON Responses" --> FE
+API -- "CRUD &amp; Benutzeraktionen" --> BE
+
+U_Child -. "Kind wird gescannt" .- RFID
+RFID -- "Tag/Tracker-ID" --> ESP
+ESP -- "MQTT Publish<br>(Scan-Events)" --> MQTTB
+MQTTB -- "MQTT Subscribe" --> BE
+
+BE <--> |SQL / CRUD| DB
+BE -. "SSE: Live-Updates" .-> FE
+
+%% =========================
+%% SHAPES
+%% =========================
+FE@{ shape: rect}
+API@{ shape: rect}
+BE@{ shape: rect}
+DB@{ shape: rect}
+MQTTB@{ shape: rect}
+RFID@{ shape: rect}
+ESP@{ shape: rect}
+DISP@{ shape: rect}
+
+%% =========================
+%% COLORS
+%% =========================
+style Backend stroke:#1E40AF,fill:#F8FAFF
+style Docker stroke:#0284C7,fill:#F0F9FF
+style Client fill:#FFFFFF
+style User stroke:#D50000, fill:#FFF5F5
+style Local stroke:#334155
+style Client stroke:#334155
+style Hardware stroke:#334155
+style LocalRow stroke: #fff
+style Scan stroke:#AA00FF,fill:#FAF5FF

@@ -1,268 +1,150 @@
-# Lokato – Interaktives Raumdisplay für den Hort Pregarten
+# Lokato – Interaktives Raumdisplay Hort Pregarten
 
-Lokato ist ein interaktives, digitales Raumdisplay für den Hort Pregarten.  
-Es ersetzt die bisherige Magnettafel und zeigt übersichtlich, welche Kinder sich in welchen Räumen befinden.  
-Ziel ist eine leicht bedienbare, robuste Lösung, die den Alltag für Kinder, Pädagog:innen und Hortleitung verbessert.
+## Projektübersicht
 
----
+**Title**
+Lokato – Interaktives Raumdisplay Hort Pregarten
 
-## Inhaltsverzeichnis
+**Type**
+Programming · UX Design / Usability · Web · Media Technology
 
-- [Lokato – Interaktives Raumdisplay für den Hort Pregarten](#lokato--interaktives-raumdisplay-für-den-hort-pregarten)
-  - [Inhaltsverzeichnis](#inhaltsverzeichnis)
-  - [Projektüberblick](#projektüberblick)
-  - [Zielgruppe \& Ziele](#zielgruppe--ziele)
-  - [Features (geplant)](#features-geplant)
-  - [Tech-Stack](#tech-stack)
-  - [Architektur \& Diagramme](#architektur--diagramme)
-    - [Systemübersicht](#systemübersicht)
-    - [Systemarchitektur](#systemarchitektur)
-    - [Datenmodell](#datenmodell)
-    - [User Flow](#user-flow)
-  - [Repository-Struktur \& verwandte Repositories](#repository-struktur--verwandte-repositories)
-  - [Projektstatus](#projektstatus)
-  - [FH-Kontext](#fh-kontext)
-  - [Team](#team)
-  - [Betreuung](#betreuung)
-<!--7. [Installation & Setup](#installation--setup)  -->
-<!--8. [Nutzung](#nutzung)-->  
-7. [Projektstatus](#projektstatus)  
-8. [FH-Kontext](#fh-kontext)  
-9. [Team](#team)  
-19. [Betreuung](#betreuung)  
-<!--13. [Lizenz](#lizenz)  -->
-
----
-
-## Projektüberblick
-
-Lokato stellt eine zentrale, digitale Übersicht über die Raumbelegung im Hort Pregarten bereit.  
-Kinder können eigenständig ihren aktuellen Aufenthaltsort ändern, während Pädagog:innen und Hortleitung jederzeit sehen, wer sich wo befindet.
-
-Das Projekt befindet sich derzeit in der prototypischen Umsetzung und dient gleichzeitig als Studienprojekt im Rahmen des Studiengangs **Medientechnik- und -design**.
-
----
-
-## Zielgruppe & Ziele
-
-**Zielgruppe**
-
-- Hortleitung
-- Pädagog:innen
-- (indirekt) hort Kinder
-- Betreuer:innen und Lehrende im Rahmen des Studienprojekts
-
-**Ziele**
-
-- Ablöse der analogen Magnettafel durch ein einfach bedienbares, digitales System  
-- Erhöhung der Übersichtlichkeit und Transparenz der Raumbelegung  
-- Unterstützung der pädagogischen Abläufe (z. B. Sicherheit, Anwesenheitskontrollen)  
-
----
-
-## Features (geplant)
-
-> **Hinweis:** Viele Punkte sind noch in Konzeption bzw. prototypischer Umsetzung.
-
-- Anzeige der aktuellen Raumbelegung auf einem zentralen Display  
-- Selbstständige Umbuchung der Kinder auf andere Räume  
-- Konfigurierbare Räume und Gruppen  
-- (Optional) Admin-Ansicht für Pädagog:innen / Hortleitung  
-- (Optional) Auswertungen / Statistiken zur Nutzung  
-
----
-
-## Tech-Stack
-
-**Frontend**
-
-- [Vue.js 3](https://vuejs.org/)  
-- TypeScript
-
-**Backend**
-
-- [Laravel](https://laravel.com/) (PHP)
-
-**Datenbank**
-
-- MySQL  
-- Betrieb in Docker-Containern
-
-**Infrastructure & Tools**
-
-- Docker (Containerisierung)  
-- CI/CD via GitHub Actions (in Planung)  
-- Figma (UI-/UX-Design)
-
-**Hardware**
-
-- Noch offen / in Evaluierung
-
----
-
-## Architektur & Diagramme
-
-
-### Systemübersicht
-
-Übersicht über die wichtigsten Komponenten (Eingabegeräte, Plattform, Display) und deren Zusammenspiel im Hort-Alltag.
-
-TODO
-
-
-### Systemarchitektur
-
-Darstellung der technischen Architektur (Frontend, Backend, Datenbank, ggf. Hardware-Schicht).
-
-![Lokato Architekturdiagram](docs/diagrams/Lokato-architecture-2025-11-20-234727.png)
-
-
----
-
-### Datenmodell
-
-
-Überblick über die wichtigsten Entitäten und deren Beziehungen.
-
-![Lokato Datenmodel](docs/diagrams/Lokato-erd-2025-11-21.png)
-
-``` sql
-
-CREATE TABLE rooms (
-  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name       VARCHAR(100)    NOT NULL,
-  area       VARCHAR(50)     NULL,
-  capacity   INT             NOT NULL,
-  tolerance  INT             NOT NULL DEFAULT 2,
-  is_active  TINYINT(1)      NOT NULL DEFAULT 1,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE children (
-  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name        VARCHAR(100)    NOT NULL,
-  photo_url   VARCHAR(255)    NULL,
-  tracker_uid VARCHAR(100)    NOT NULL,
-  is_active   TINYINT(1)      NOT NULL DEFAULT 1,
-  PRIMARY KEY (id),
-  UNIQUE KEY uk_children_tracker_uid (tracker_uid)
-);
-
-CREATE TABLE devices (
-  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name       VARCHAR(100)    NOT NULL,
-  device_key CHAR(100)       NOT NULL,
-  room_id    BIGINT UNSIGNED NOT NULL,
-  last_seen  TIMESTAMP       NULL,
-  PRIMARY KEY (id),
-  UNIQUE KEY uk_devices_device_key (device_key),
-  KEY idx_devices_room (room_id),
-  CONSTRAINT fk_devices_room
-    FOREIGN KEY (room_id) REFERENCES rooms(id)
-);
-
-CREATE TABLE child_locations (
-  child_id   BIGINT UNSIGNED NOT NULL,
-  room_id    BIGINT UNSIGNED NULL,
-  updated_at TIMESTAMP       NOT NULL
-              DEFAULT CURRENT_TIMESTAMP
-              ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (child_id),
-  KEY idx_child_locations_room (room_id),
-  CONSTRAINT fk_child_locations_child
-    FOREIGN KEY (child_id) REFERENCES children(id),
-  CONSTRAINT fk_child_locations_room
-    FOREIGN KEY (room_id)  REFERENCES rooms(id)
-);
-
-CREATE TABLE movement_log (
-  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  child_id     BIGINT UNSIGNED NOT NULL,
-  from_room_id BIGINT UNSIGNED NULL,
-  to_room_id   BIGINT UNSIGNED NULL,
-  device_id    BIGINT UNSIGNED NULL,
-  source       ENUM('device','manual','import')
-               NOT NULL DEFAULT 'device',
-  occurred_at  DATETIME        NOT NULL,
-  PRIMARY KEY (id),
-  KEY idx_mlog_child     (child_id),
-  KEY idx_mlog_from_room (from_room_id),
-  KEY idx_mlog_to_room   (to_room_id),
-  KEY idx_mlog_device    (device_id),
-  CONSTRAINT fk_mlog_child
-    FOREIGN KEY (child_id)     REFERENCES children(id),
-  CONSTRAINT fk_mlog_from_room
-    FOREIGN KEY (from_room_id) REFERENCES rooms(id),
-  CONSTRAINT fk_mlog_to_room
-    FOREIGN KEY (to_room_id)   REFERENCES rooms(id),
-  CONSTRAINT fk_mlog_device
-    FOREIGN KEY (device_id)    REFERENCES devices(id)
-);
-
-```
-
----
-
-### User Flow
-
-Ablauf aus Sicht eines Kindes (Raumwechsel) bzw. aus Sicht der Pädagog:innen.
-
----
-
-## Repository-Struktur & verwandte Repositories
-
-Dieses Repository (`lokato-main`) dient als **zentrales Projekt- und Dokumentations-Repository** für:
-
-* Projektbeschreibung, Ziele und Anforderungen
-* Architektur- und Ablaufdiagramme
-* Projektdokumentation
-* ggf. Präsentationen und weitere Unterlagen
-* Hardware Code & Setup
-
-Frontend, Backend und Datenbank liegen in einem separaten Repository:
-
-* **lokato-platform**
-  `https://github.com/lokato-at/lokato-platform.git`
-
----
-
-## Projektstatus
-
-* **Status:** In Arbeit
-* **Charakter:** Prototyp / Experimentell / Proof of Concept
-
-Das System ist aktuell in aktiver Entwicklung und noch nicht für den produktiven Einsatz freigegeben.
-Änderungen an Architektur, UI und Funktionsumfang sind zu erwarten.
-
----
-
-## FH-Kontext
-
-Dieses Projekt entsteht im Rahmen des Studiengangs **Medientechnik- und -design**
-an der Fachhochschule Hagenberg.
-
-**Lehrveranstaltung**
-
-* **PRO3SE: Project Management and Presentation**
+**Course**
+PRO3PT – Semesterprojekt 1
+Media Technology and Design Bachelor (MTD.ba)
 
 ---
 
 ## Team
 
-* **Abazovic Edina** – Entwicklung & Konzeption (flexible Rolle)
-* **Catic Selina** – Entwicklung & Konzeption (flexible Rolle)
-* **Hermann Nikolai** – Entwicklung & Konzeption (flexible Rolle)
-* **Trunez Tristan** – Entwicklung & Konzeption (flexible Rolle)
+* **Edina Abazovic** – Technical Lead & Backend Development
+* **Selina Catic** – UI/UX Design & Frontend Development
+* **Nikolai Hermann** – Hardware & System Integration
+* **Tristan Trunez** – Frontend Development
+
+**Supervisors**
+
+* Volker Christian
+* Wolfgang Hochleitner
 
 ---
 
-## Betreuung
+## Short Project Description (EN)
 
-**FH-Betreuung**
+The Lokato project is an interactive room display system for the after-school childcare facility *Hort Pregarten*. It replaces an analog magnetic board with a child-friendly digital system that displays room occupancy in real time across multiple devices. By combining contactless, automatic detection with a child-friendly user interface, orientation is improved and daily routines are simplified.
 
-* **Hochleitner Wolfgang** – Betreuer
-* **Volker Cristian** – Betreuer
+---
 
-**Kontaktperson im Hort**
+## Projektbeschreibung (DE)
 
-* /
+Das Projekt **Lokato** ist ein interaktives Raumdisplay für die Betreuungseinrichtung *Hort Pregarten*. Es ersetzt eine analoge Magnettafel durch ein kindgerechtes, digitales System, das die Raumbelegung in Echtzeit auf verschiedenen Endgeräten anzeigt. Durch die Kombination aus kontaktloser, automatischer Erfassung und einer kinderfreundlichen Benutzeroberfläche wird die Orientierung erleichtert und der tägliche Ablauf vereinfacht.
+
+---
+
+## Was ist Lokato?
+
+Lokato unterstützt Betreuungseinrichtungen dabei, die aktuelle Raumbelegung von Kindern übersichtlich und zuverlässig darzustellen. Ziel ist es, den organisatorischen Aufwand im Alltag zu reduzieren und eine klare Orientierung für Kinder und Betreuungspersonal zu schaffen.
+
+Die Erfassung erfolgt kontaktlos über Tracker, die beim Betreten oder Verlassen eines Raumes erkannt werden. Die entstehenden Scan-Ereignisse bilden die Grundlage für eine einfache, visuelle Darstellung der Raumnutzung in Echtzeit.
+
+Der Fokus liegt dabei auf:
+
+* niedriger kognitiver Komplexität
+* kindgerechter Darstellung
+* Echtzeit-Aktualität
+* robuster, wartungsarmer Technik
+
+---
+
+## Systemübersicht (High-Level)
+
+Lokato besteht aus mehreren Komponenten:
+
+* **Hardware / IoT**
+  RFID-Scanner und ESP32-Geräte erfassen Scan-Ereignisse an Türen.
+
+* **Backend**
+  Verarbeitet Scan-Events, speichert Zustände und stellt APIs bereit.
+
+* **Frontend**
+  Visualisiert Raumbelegung und Statusinformationen in Echtzeit.
+
+* **Messaging & Datenhaltung**
+  MQTT für Event-Übertragung, relationale Datenbank für Persistenz.
+
+Die folgende Architektur visualisiert diesen Aufbau sowie den Datenfluss vom Scan bis zur Anzeige im Browser.
+
+![Lokato Architekturdiagram](docs/diagrams/Lokato-architecture-2026-02-01.png)
+
+Dieses Entity-Relationship-Diagramm beschreibt die zugrunde liegende Datenstruktur und deren Beziehungen.
+
+![Lokato Datenmodel](docs/diagrams/Lokato ERD-2026-02-01.svg)
+
+---
+
+## Repository-Struktur
+
+Dieses Repository fungiert als **Main-Repository** des Projekts.
+
+### Inhalt dieses Repositories
+
+* Hardware-nahe Implementierungen (ESP32, Scanner, Displays)
+* Projekt- und Systemdokumentation
+* Architektur- und Datenmodelle
+* Projektkontext (Studium, Zielsetzung, Status)
+
+### Code-Repository für Web & Server
+
+Der gesamte Code für Backend, Frontend und Datenbank befindet sich in einem separaten Repository:
+
+* **`lokato-platform`**
+  Backend (Laravel) · Frontend (Vue/Vite) · Datenbank (MySQL)
+
+  Siehe: [lokato-platform](https://github.com/lokato-at/lokato-platform.git)
+
+Dieses Main-Repository enthält **kein** Setup oder Detaildokumentation für diese Komponenten.
+
+---
+
+## Umgebungen
+
+* **Development**
+  Lokale Entwicklungsumgebung auf dem Laptop/PC der Entwickler:innen.
+
+* **Produktion**
+  Betrieb auf einem Raspberry Pi im WLAN des Horts.
+
+Die Konfiguration und der Betrieb der Zielumgebung sind separat dokumentiert.
+
+---
+
+## Projektstatus
+
+Lokato befindet sich noch in Entwicklung. Die Kernfunktionalität, automatisierte Erfassung und Visualisierung der Raumbelegung, sind umgesetzt und ein Prototyp des gesamten Setups wurde eingerichtet.
+
+---
+
+## Next Steps / ToDos
+
+### Frontend
+
+* Performance-Optimierung des Frontends
+
+  * Reduktion von Ladezeiten
+  * Analyse der REST-Requests seit Einführung von SSE
+* Integration des finalen UI-Designs (HTML/CSS)
+* Konzeption und Umsetzung einer eigenen UI für Raumdisplays
+
+### Hardware
+
+* Displays in Betrieb nehmen (als Ersatz für ESP32-Steckbrett-Setups)
+* Evaluation geeigneter Displays (Browser-Fähigkeit eingeschränkt)
+* Zuordnung von Sticker-IDs zu Kindern (in Abstimmung mit Backend & Frontend)
+
+**Optional / experimentell:**
+
+* Entfernung des akustischen Signals am R200-Scanner
+* Anpassung der Scanner-Reichweite
+* Schutzgehäuse für Verkabelung (Kindersicherheit)
+
+---
+
