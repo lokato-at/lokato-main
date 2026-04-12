@@ -1,36 +1,43 @@
 #ifndef R200_3_h
 #define R200_3_h
 
-// #define DEBUG   // enable for more debug prints
-
 #include <Arduino.h>
 #include <stdint.h>
 
-// Receive buffer length
 #define RX_BUFFER_LENGTH 128
 
 class R200_3 {
   private:
-    HardwareSerial *_serial;
-    uint8_t _buffer[RX_BUFFER_LENGTH] = {0};
+    static const uint8_t  BUZZER_PIN = 4;
+    static const uint16_t FRAME_TIMEOUT_MS = 40;
 
-    uint8_t  calculateCheckSum(uint8_t *buffer);
-    uint16_t arrayToUint16(uint8_t *array);
-    bool     parseReceivedData();
-    bool     dataIsValid();
-    bool     receiveData(unsigned long timeOut = 500);
-    void     dumpReceiveBufferToSerial();
-    uint8_t  flush();
-    void     beep();
+    HardwareSerial* _serial = nullptr;
+    uint8_t _buffer[RX_BUFFER_LENGTH] = {0};
+    uint8_t _rxIndex = 0;
+    bool _frameInProgress = false;
+    unsigned long _lastByteAt = 0;
+    bool _beepActive = false;
+    unsigned long _beepUntilAt = 0;
 
     const uint8_t blankUid[12] = {0};
+
+    uint8_t  calculateCheckSum(uint8_t* buffer);
+    uint16_t arrayToUint16(uint8_t* array);
+    bool     dataIsValid(uint8_t frameLength);
+    void     resetFrame();
+    void     consumeByte(uint8_t b);
+    void     processFrame(uint8_t frameLength);
+    void     startBeep(uint16_t durationMs = 60);
+    void     updateBuzzer();
+    void     flushInput();
+    void     dumpReceiveBufferToSerial(uint8_t len);
 
   public:
     R200_3();
 
     uint8_t uid[12] = {0};
 
-    bool begin(HardwareSerial *serial = &Serial2,
+    bool begin(HardwareSerial* serial = &Serial2,
                int baud = 115200,
                uint8_t RxPin = 16,
                uint8_t TxPin = 17);
