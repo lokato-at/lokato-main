@@ -188,14 +188,37 @@ void setup() {
 
   rfid.setTransmitPowerDbm(12);   // REICHWEITE
 
-  // WLAN + Zeit danach
-  connectWifi();
-  setupTime();
-
   mqttClient.setBufferSize(512);
-  connectMqtt();
+
+  do {
+    if (WiFi.status() != WL_CONNECTED) {
+      connectWifi();
+      if (WiFi.status() == WL_CONNECTED) {
+        setupTime();
+        Serial.println("WiFi connected and local time synced");
+      } else {
+        Serial.println("WiFi not connected. Retrying ...");
+      }
+    }
+    
+    if (!mqttClient.connected) {
+      connectMqtt();
+      if (mqttClient.connected) {
+        Serial.println("MQTT connected");
+      } else {
+        Serial.println("MQTT not connected. Retrying ...");
+      }
+    }
+
+    if (!mqttClient.connected || WiFi.status() != WL_CONNECTED) {
+      Serial.println("Retrying in 2000ms");
+      delay(2000); // pause for two seconds
+    }
+  } while (!mqttClient.connected || WiFi.status() != WL_CONNECTED);
 
   memset(lastPublishedUid, 0, sizeof(lastPublishedUid));
+
+  Serial.println("Setup success. Entering loop()");
 }
 
 
