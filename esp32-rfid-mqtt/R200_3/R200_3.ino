@@ -199,9 +199,7 @@ void setup() {
       } else {
         Serial.println("WiFi not connected. Retrying ...");
       }
-    }
-    
-    if (!mqttClient.connected) {
+    } else if (!mqttClient.connected) {
       connectMqtt();
       if (mqttClient.connected) {
         Serial.println("MQTT connected");
