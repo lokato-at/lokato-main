@@ -8,12 +8,12 @@
 // =========================
 // Configuration
 // =========================
-static const char* DEVICE_KEY      = "RaspberryChild01";
+static const char* DEVICE_KEY = "RaspberryChild02";
 
 // Hostname is derived from DEVICE_KEY so each ESP32 is unique on the network.
-static char WIFI_HOSTNAME[48]      = {0};
-static const char* WIFI_SSID       = "lokato";
-static const char* WIFI_PASSWORD   = "lokato123";
+static char WIFI_HOSTNAME[48] = { 0 };
+static const char* WIFI_SSID = "lokato";
+static const char* WIFI_PASSWORD = "lokato123";
 
 // Prefer a DHCP reservation on your router for this device instead of a hard-coded static IP.
 // Optional static IP example (uncomment if you really need it and know your network):
@@ -23,13 +23,13 @@ static const char* WIFI_PASSWORD   = "lokato123";
 // IPAddress DNS1(1, 1, 1, 1);
 // IPAddress DNS2(8, 8, 8, 8);
 
-static const char* MQTT_HOST       = "192.168.1.100";
-static const uint16_t MQTT_PORT    = 1883;
-static const char* MQTT_USERNAME   = nullptr;
-static const char* MQTT_PASSWORD   = nullptr;
+static const char* MQTT_HOST = "192.168.1.100";
+static const uint16_t MQTT_PORT = 1883;
+static const char* MQTT_USERNAME = nullptr;
+static const char* MQTT_PASSWORD = nullptr;
 
-static const uint8_t  RFID_RX_PIN                  = 16;
-static const uint8_t  RFID_TX_PIN                  = 17;
+static const uint8_t RFID_RX_PIN = 16;
+static const uint8_t RFID_TX_PIN = 17;
 // ---------- UHF read distance / range ----------
 // This module does not offer a true "distance in cm" setting.
 // In practice, read distance is mostly influenced by transmit power,
@@ -45,45 +45,47 @@ static const uint8_t  RFID_TX_PIN                  = 17;
 //   12 dBm  -> medium range
 //   18 dBm  -> longer range
 //   24..27  -> aggressive / may read more than desired
-static const uint8_t  RFID_POWER_DBM               = 5;
+static const uint8_t RFID_POWER_DBM = 20;
 
 // Optional software filter against accidental long-distance reads:
 // a tag must be seen N times in a row before it is accepted as "present".
 // Increase this to 2..4 if you get false positives from farther away.
-static const uint8_t  RFID_CONFIRMATION_HITS       = 2;
+static const uint8_t RFID_CONFIRMATION_HITS = 2;
 
-static const uint32_t RFID_POLL_INTERVAL_MS        = 250;
-static const uint32_t WIFI_RETRY_INTERVAL_MS       = 5000;
-static const uint32_t MQTT_RETRY_INTERVAL_MS       = 3000;
-static const uint32_t NTP_RETRY_INTERVAL_MS        = 60000;
-static const uint32_t NTP_RESYNC_INTERVAL_MS       = 6UL * 60UL * 60UL * 1000UL;
-static const uint32_t DIAG_INTERVAL_MS             = 10000;
-static const uint32_t STATUS_PUBLISH_INTERVAL_MS   = 60000;
-static const uint32_t WIFI_HARD_RESET_AFTER_MS     = 5UL * 60UL * 1000UL;
-static const uint32_t MQTT_HARD_RESET_AFTER_MS     = 10UL * 60UL * 1000UL;
-static const uint32_t BOOT_STABILIZE_DELAY_MS      = 300;
+static const uint32_t RFID_POLL_INTERVAL_MS = 250;
+static const uint32_t WIFI_RETRY_INTERVAL_MS = 5000;
+static const uint32_t MQTT_RETRY_INTERVAL_MS = 3000;
+static const uint32_t NTP_FIRST_SYNC_RETRY_MS = 10000;  // solange noch keine Zeit da ist: alle 10s probieren
+static const uint32_t NTP_RETRY_INTERVAL_MS = 60000;    // nach Fehlern später: alle 60s
+static const uint32_t NTP_RESYNC_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
+static const uint32_t NTP_SYNC_WAIT_MS = 5000;  // statt 1500ms
+static const uint32_t DIAG_INTERVAL_MS = 10000;
+static const uint32_t STATUS_PUBLISH_INTERVAL_MS = 60000;
+static const uint32_t WIFI_HARD_RESET_AFTER_MS = 5UL * 60UL * 1000UL;
+static const uint32_t MQTT_HARD_RESET_AFTER_MS = 10UL * 60UL * 1000UL;
+static const uint32_t BOOT_STABILIZE_DELAY_MS = 300;
 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 R200_3 rfid;
 
-static uint8_t currentUid[12]      = {0};
-static uint8_t pendingUid[12]      = {0};
-static uint8_t candidateUid[12]    = {0};
-static uint8_t candidateHits       = 0;
-static bool    pendingPublish      = false;
-static bool    timeSynced          = false;
-static bool    mqttWasConnected    = false;
+static uint8_t currentUid[12] = { 0 };
+static uint8_t pendingUid[12] = { 0 };
+static uint8_t candidateUid[12] = { 0 };
+static uint8_t candidateHits = 0;
+static bool pendingPublish = false;
+static bool timeSynced = false;
+static bool mqttWasConnected = false;
 
-static unsigned long lastPollAt        = 0;
-static unsigned long lastWifiTryAt     = 0;
-static unsigned long lastMqttTryAt     = 0;
-static unsigned long lastNtpTryAt      = 0;
-static unsigned long lastNtpSyncAt     = 0;
-static unsigned long lastDiagAt        = 0;
-static unsigned long lastStatusAt      = 0;
-static unsigned long wifiDownSinceAt   = 0;
-static unsigned long mqttDownSinceAt   = 0;
+static unsigned long lastPollAt = 0;
+static unsigned long lastWifiTryAt = 0;
+static unsigned long lastMqttTryAt = 0;
+static unsigned long lastNtpTryAt = 0;
+static unsigned long lastNtpSyncAt = 0;
+static unsigned long lastDiagAt = 0;
+static unsigned long lastStatusAt = 0;
+static unsigned long wifiDownSinceAt = 0;
+static unsigned long mqttDownSinceAt = 0;
 
 static void copyUid(uint8_t dst[12], const uint8_t src[12]) {
   memcpy(dst, src, 12);
@@ -115,43 +117,51 @@ static void uidToHexString(const uint8_t uid[12], char* out, size_t outSize) {
   out[1] = 'x';
   static const char hex[] = "0123456789ABCDEF";
   for (uint8_t i = 0; i < 12; ++i) {
-    out[2 + (i * 2)]     = hex[(uid[i] >> 4) & 0x0F];
+    out[2 + (i * 2)] = hex[(uid[i] >> 4) & 0x0F];
     out[2 + (i * 2) + 1] = hex[uid[i] & 0x0F];
   }
   out[26] = '\0';
 }
 
 static bool getIso8601Local(char* out, size_t outSize) {
+  if (outSize > 0) {
+    out[0] = '\0';
+  }
+
+  if (!timeSynced) {
+    return false;
+  }
+
   struct tm timeinfo;
-  if (!getLocalTime(&timeinfo, 10)) {
-    if (outSize > 0) {
-      out[0] = '\0';
-    }
+  if (!getLocalTime(&timeinfo, 100)) {
     return false;
   }
 
-  char tmp[40] = {0};
+  const int year = timeinfo.tm_year + 1900;
+  if (year < 2024) {
+    return false;
+  }
+
+  char tmp[40] = { 0 };
+
+  // Beispiel: 2026-05-02T20:15:30+0200
   if (strftime(tmp, sizeof(tmp), "%Y-%m-%dT%H:%M:%S%z", &timeinfo) == 0) {
-    if (outSize > 0) {
-      out[0] = '\0';
-    }
     return false;
   }
 
+  // +0200 zu +02:00 umbauen
   const size_t len = strlen(tmp);
   if (len >= 5 && outSize >= len + 2) {
     memcpy(out, tmp, len - 2);
     out[len - 2] = ':';
     out[len - 1] = tmp[len - 2];
-    out[len]     = tmp[len - 1];
+    out[len] = tmp[len - 1];
     out[len + 1] = '\0';
     return true;
   }
 
-  if (outSize > 0) {
-    strncpy(out, tmp, outSize - 1);
-    out[outSize - 1] = '\0';
-  }
+  strncpy(out, tmp, outSize - 1);
+  out[outSize - 1] = '\0';
   return true;
 }
 
@@ -184,11 +194,11 @@ static bool publishDeviceInfo(bool retained = true) {
 
   StaticJsonDocument<256> doc;
   doc["device_key"] = DEVICE_KEY;
-  doc["hostname"]   = WIFI_HOSTNAME;
-  doc["ip"]         = WiFi.localIP().toString();
-  doc["rssi"]       = WiFi.RSSI();
-  doc["heap_free"]  = ESP.getFreeHeap();
-  doc["uptime_ms"]  = millis();
+  doc["hostname"] = WIFI_HOSTNAME;
+  doc["ip"] = WiFi.localIP().toString();
+  doc["rssi"] = WiFi.RSSI();
+  doc["heap_free"] = ESP.getFreeHeap();
+  doc["uptime_ms"] = millis();
   doc["rfid_power_dbm"] = RFID_POWER_DBM;
   doc["rfid_confirmation_hits"] = RFID_CONFIRMATION_HITS;
 
@@ -216,13 +226,16 @@ static bool publishScanEvent(const uint8_t uid[12]) {
   uidToHexString(uid, uidHex, sizeof(uidHex));
 
   StaticJsonDocument<256> doc;
-  doc["device_key"]  = DEVICE_KEY;
+  doc["device_key"] = DEVICE_KEY;
   doc["tracker_uid"] = uidHex;
-  doc["wifi_rssi"]   = WiFi.RSSI();
+  doc["wifi_rssi"] = WiFi.RSSI();
 
   char ts[40];
   if (getIso8601Local(ts, sizeof(ts))) {
     doc["event_time"] = ts;
+  } else {
+    doc["event_time"] = nullptr;
+    doc["time_synced"] = false;
   }
 
   char payload[256];
@@ -266,25 +279,71 @@ static void syncTimeIfNeeded(unsigned long nowMs, bool force = false) {
     return;
   }
 
-  if (!force && (nowMs - lastNtpTryAt < NTP_RETRY_INTERVAL_MS)) {
+  const uint32_t retryInterval = timeSynced ? NTP_RETRY_INTERVAL_MS : NTP_FIRST_SYNC_RETRY_MS;
+
+  if (!force && lastNtpTryAt != 0 && (nowMs - lastNtpTryAt < retryInterval)) {
     return;
   }
+
   lastNtpTryAt = nowMs;
 
   struct tm timeinfo;
-  if (getLocalTime(&timeinfo, 10)) {
-    timeSynced = true;
-    lastNtpSyncAt = nowMs;
-    return;
+
+  // Erst prüfen, ob die lokale Uhr bereits gültig läuft.
+  if (getLocalTime(&timeinfo, 100)) {
+    const int year = timeinfo.tm_year + 1900;
+    if (year >= 2024) {
+      if (!timeSynced) {
+        Serial.println("Time already valid.");
+      }
+      timeSynced = true;
+      lastNtpSyncAt = nowMs;
+      return;
+    }
   }
 
   Serial.println("NTP sync requested...");
-  configTime(0, 0, "pool.ntp.org", "time.nist.gov", "time.google.com");
 
-  if (getLocalTime(&timeinfo, 1500)) {
-    timeSynced = true;
-    lastNtpSyncAt = nowMs;
-    Serial.println("Time synced.");
+  Serial.print("WiFi IP: ");
+  Serial.println(WiFi.localIP());
+
+  Serial.print("Gateway: ");
+  Serial.println(WiFi.gatewayIP());
+
+  Serial.print("DNS: ");
+  Serial.println(WiFi.dnsIP());
+
+  IPAddress ntpIp;
+  if (WiFi.hostByName("pool.ntp.org", ntpIp)) {
+    Serial.print("NTP DNS ok: pool.ntp.org -> ");
+    Serial.println(ntpIp);
+  } else {
+    Serial.println("NTP DNS failed: pool.ntp.org");
+  }
+
+  // Österreich/Wien: CET/CEST mit Sommerzeit
+  configTzTime(
+    "CET-1CEST,M3.5.0,M10.5.0/3",
+    "pool.ntp.org",
+    "time.google.com",
+    "time.nist.gov");
+
+  if (getLocalTime(&timeinfo, NTP_SYNC_WAIT_MS)) {
+    const int year = timeinfo.tm_year + 1900;
+
+    if (year >= 2024) {
+      timeSynced = true;
+      lastNtpSyncAt = nowMs;
+
+      char buf[40];
+      strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
+
+      Serial.print("Time synced: ");
+      Serial.println(buf);
+    } else {
+      Serial.print("Time invalid after sync, year=");
+      Serial.println(year);
+    }
   } else {
     Serial.println("Time not synced yet.");
   }
@@ -490,7 +549,18 @@ static void printDiagnostics(unsigned long nowMs) {
   Serial.print(" power_dbm=");
   Serial.print(RFID_POWER_DBM);
   Serial.print(" confirm_hits=");
-  Serial.println(RFID_CONFIRMATION_HITS);
+  Serial.print(RFID_CONFIRMATION_HITS);
+
+  Serial.print(" ntp=");
+  Serial.print(timeSynced ? "1" : "0");
+
+  Serial.print(" lastNtpTry=");
+  Serial.print(lastNtpTryAt);
+
+  Serial.print(" lastNtpSync=");
+  Serial.print(lastNtpSyncAt);
+
+  Serial.println();
 }
 
 static void onWiFiEvent(WiFiEvent_t event) {
@@ -502,7 +572,17 @@ static void onWiFiEvent(WiFiEvent_t event) {
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
       Serial.print("[WiFi] Got IP: ");
       Serial.println(WiFi.localIP());
+
+      Serial.print("[WiFi] Gateway: ");
+      Serial.println(WiFi.gatewayIP());
+
+      Serial.print("[WiFi] DNS: ");
+      Serial.println(WiFi.dnsIP());
+
       wifiDownSinceAt = 0;
+
+      // Direkt nach IP-Vergabe NTP versuchen.
+      syncTimeIfNeeded(millis(), true);
       break;
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
       Serial.println("[WiFi] Disconnected");
