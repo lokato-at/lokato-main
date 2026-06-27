@@ -1,0 +1,59 @@
+# =====================================================================
+# Lokato-main — Hardware-Firmware, Tablet-Mockup, Doku, Setup-Scripts
+# =====================================================================
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
+
+# IDE & Editor
+.idea/
+.vscode/
+.fleet/
+*.iml
+*.sublime-*
+
+# AI / Tools
+**/.claude/
+**/.cursor/
+**/.junie/
+
+# --- Arduino / PlatformIO build artefacts ---
+.pio/
+.pioenvs/
+.piolibdeps/
+build/
+*.bin
+*.elf
+*.hex
+*.map
+
+# --- Node (für tablet_mockup falls genutzt) ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.cache/
+
+# --- Secrets — NIE einchecken ---
+# WiFi-Credentials / MQTT-Creds NIEMALS hier!
+secrets.h
+credentials.h
+.env
+.env.*
+!.env.example
+
+# --- Figma-Backups / Design-Iterationen ---
+# Achtung: lokato_UI_UX.fig ist aktuell tracked.
+# Falls neu hinzugefügt würde, hier ausschließen:
+# *.fig.bak
+# *.fig.lock
+
+# --- Temp / Logs ---
+*.log
+*.tmp
+*.bak
+*.orig

@@ -46,8 +46,8 @@ Wenn möglich:
 - optional TLS, wenn das Netz nicht komplett intern/vertrauenswürdig ist
 
 
-Fixed deployment values in this build:
-- SSID: lokato
-- MQTT broker: 192.168.1.100:1883
+Build defaults (replace with your own values before flashing):
+- SSID: `<your-wifi-ssid>`
+- MQTT broker: `<lokato-pi-ip>:1883`
 - Hostname is derived from DEVICE_KEY + chip id
 - Auto-recovery: ESP restart after 5 min WiFi-down or 10 min MQTT-down

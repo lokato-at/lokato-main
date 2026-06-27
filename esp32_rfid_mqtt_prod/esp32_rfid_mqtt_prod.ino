@@ -6,14 +6,15 @@
 #include "R200_3.h"
 
 // =========================
-// Configuration
+// Configuration — fill in your own values before flashing.
+// Do NOT commit real WiFi/MQTT credentials back into git.
 // =========================
-static const char* DEVICE_KEY = "RaspberryChild02";
+static const char* DEVICE_KEY = "<unique-device-key>";   // e.g. "RaspberryChild02" — one per ESP32
 
 // Hostname is derived from DEVICE_KEY so each ESP32 is unique on the network.
 static char WIFI_HOSTNAME[48] = { 0 };
-static const char* WIFI_SSID = "lokato";
-static const char* WIFI_PASSWORD = "lokato123";
+static const char* WIFI_SSID     = "<your-wifi-ssid>";
+static const char* WIFI_PASSWORD = "<your-wifi-password>";
 
 // Prefer a DHCP reservation on your router for this device instead of a hard-coded static IP.
 // Optional static IP example (uncomment if you really need it and know your network):
@@ -23,7 +24,7 @@ static const char* WIFI_PASSWORD = "lokato123";
 // IPAddress DNS1(1, 1, 1, 1);
 // IPAddress DNS2(8, 8, 8, 8);
 
-static const char* MQTT_HOST = "192.168.1.100";
+static const char* MQTT_HOST = "<lokato-pi-ip>";           // e.g. "192.168.1.100"
 static const uint16_t MQTT_PORT = 1883;
 static const char* MQTT_USERNAME = nullptr;
 static const char* MQTT_PASSWORD = nullptr;
@@ -563,7 +564,30 @@ static void printDiagnostics(unsigned long nowMs) {
   Serial.println();
 }
 
-static void onWiFiEvent(WiFiEvent_t event) {
+static const char* wifiDisconnectReasonText(uint8_t reason) {
+  switch (reason) {
+    case WIFI_REASON_UNSPECIFIED:           return "UNSPECIFIED";
+    case WIFI_REASON_AUTH_EXPIRE:           return "AUTH_EXPIRE";
+    case WIFI_REASON_AUTH_LEAVE:            return "AUTH_LEAVE";
+    case WIFI_REASON_ASSOC_EXPIRE:          return "ASSOC_EXPIRE";
+    case WIFI_REASON_ASSOC_TOOMANY:         return "ASSOC_TOOMANY (AP voll)";
+    case WIFI_REASON_NOT_AUTHED:            return "NOT_AUTHED";
+    case WIFI_REASON_NOT_ASSOCED:           return "NOT_ASSOCED";
+    case WIFI_REASON_ASSOC_LEAVE:           return "ASSOC_LEAVE";
+    case WIFI_REASON_ASSOC_NOT_AUTHED:      return "ASSOC_NOT_AUTHED";
+    case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:return "4WAY_HANDSHAKE_TIMEOUT (falsches Passwort?)";
+    case WIFI_REASON_HANDSHAKE_TIMEOUT:     return "HANDSHAKE_TIMEOUT (falsches Passwort?)";
+    case WIFI_REASON_MIC_FAILURE:           return "MIC_FAILURE (falsches Passwort?)";
+    case WIFI_REASON_AUTH_FAIL:             return "AUTH_FAIL (falsche Zugangsdaten?)";
+    case WIFI_REASON_ASSOC_FAIL:            return "ASSOC_FAIL";
+    case WIFI_REASON_BEACON_TIMEOUT:        return "BEACON_TIMEOUT (Signal verloren)";
+    case WIFI_REASON_NO_AP_FOUND:           return "NO_AP_FOUND (SSID nicht gefunden / 5GHz / zu weit weg)";
+    case WIFI_REASON_CONNECTION_FAIL:       return "CONNECTION_FAIL";
+    default:                                return "(siehe esp_wifi_types.h)";
+  }
+}
+
+static void onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
   switch (event) {
     case ARDUINO_EVENT_WIFI_STA_CONNECTED:
       Serial.println("[WiFi] STA connected to AP");
@@ -584,11 +608,17 @@ static void onWiFiEvent(WiFiEvent_t event) {
       // Direkt nach IP-Vergabe NTP versuchen.
       syncTimeIfNeeded(millis(), true);
       break;
-    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-      Serial.println("[WiFi] Disconnected");
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED: {
+      const uint8_t reason = info.wifi_sta_disconnected.reason;
+      Serial.print("[WiFi] Disconnected, reason=");
+      Serial.print(reason);
+      Serial.print(" (");
+      Serial.print(wifiDisconnectReasonText(reason));
+      Serial.println(")");
       mqttWasConnected = false;
       mqttDownSinceAt = 0;
       break;
+    }
     default:
       break;
   }
