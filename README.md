@@ -271,7 +271,7 @@ What works in production:
 
 **Supervisors:** Volker Christian, Wolfgang Hochleitner
 
-**Context:** Bachelor semester project (PRO3PT — Semesterprojekt 1) in the
+**Context:** Bachelor semester project in the
 Media Technology and Design programme at **FH OÖ, Campus Hagenberg**
 (winter semester 2025 / summer semester 2026).
 
