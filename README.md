@@ -124,7 +124,7 @@ SSE rotation, performance targets) lives in the platform repo:
 
 ## Data model
 
-![Lokato Entity-Relationship Diagram](docs/diagrams/Lokato-ERD-2026-06-28.png)
+![Lokato Entity-Relationship Diagram](docs/diagrams/Lokato_ERD-2026-06-28.png)
 
 Six core entities: `rooms`, `children`, `devices`, `child_locations`
 (current state, one row per child), `movement_log` (append-only history),
