@@ -248,17 +248,12 @@ What works in production:
 ## Roadmap
 
 ### Frontend
-- Dedicated UI variant for room display devices (large-format)
 - Animation and accessibility polish on the tablet view
 
 ### Hardware
-- Replace ESP32 breadboard setups with proper display devices
-- Evaluate display panels (limited by available browser support)
 - Streamline sticker-ID to child mapping (with backend & frontend)
 
 ### Optional / experimental
-- Disable the R200 acoustic signal
-- Adjust scanner range for door-frame mounting
 - Protective enclosures for wiring (child safety)
 
 ---
