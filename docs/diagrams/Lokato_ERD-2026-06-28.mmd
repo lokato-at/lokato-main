@@ -1,0 +1,107 @@
+---
+title: Lokato — Datenmodell (ERD)
+config:
+  layout: elk
+  theme: base
+  look: classic
+  themeVariables:
+    fontSize: 18px
+    fontFamily: "Inter, Segoe UI, Helvetica, Arial, sans-serif"
+    primaryColor: "#E3F2FD"
+    primaryTextColor: "#0F172A"
+    primaryBorderColor: "#1D4ED8"
+    lineColor: "#64748B"
+    background: "#F8FAFC"
+  themeCSS: |
+    .erDiagramTitleText {
+      font-size: 28px !important;
+      font-weight: 800 !important;
+      fill: #0F172A !important;
+    }
+---
+erDiagram
+    direction LR
+
+    %% ==================================================================
+    %% FACHLICHER KERN — Anwesenheit, Räume, Bewegungen
+    %% ==================================================================
+
+    **ROOMS** {
+        BIGINT       id            PK
+        VARCHAR      name
+        VARCHAR      area
+        INT          capacity
+        INT          tolerance
+        BOOLEAN      is_active
+        TIMESTAMP    created_at
+        TIMESTAMP    updated_at
+    }
+
+    **CHILDREN** {
+        BIGINT       id            PK
+        VARCHAR      name
+        VARCHAR      photo_url
+        VARCHAR      tracker_uid   UK
+        BOOLEAN      is_active
+    }
+
+    **DEVICES** {
+        BIGINT       id            PK
+        VARCHAR      name
+        CHAR         device_key    UK
+        BIGINT       room_id       FK
+        TIMESTAMP    last_seen
+    }
+
+    **CHILD_LOCATIONS** {
+        BIGINT       child_id      PK,FK
+        BIGINT       room_id       FK
+        TIMESTAMP    updated_at
+    }
+
+    **MOVEMENT_LOG** {
+        BIGINT       id            PK
+        BIGINT       child_id      FK
+        BIGINT       from_room_id  FK
+        BIGINT       to_room_id    FK
+        BIGINT       device_id     FK
+        ENUM         source        "device | api | mqtt_scanner | manual"
+        DATETIME     occurred_at
+    }
+
+    **ALERTS** {
+        BIGINT       id            PK
+        BIGINT       room_id       FK
+        VARCHAR      level
+        VARCHAR      message
+        DATETIME     created_at
+        DATETIME     resolved_at
+    }
+
+    %% ==================================================================
+    %% RELATIONS
+    %% ==================================================================
+
+    %% Räume sind das organisatorische Zentrum
+    **ROOMS**          ||--o{ **DEVICES**         : "**VERWALTET**"
+    **ROOMS**          ||--o{ **CHILD_LOCATIONS** : "**ENTHÄLT**"
+    **ROOMS**          ||--o{ **ALERTS**          : "**WIRD ÜBERWACHT VIA**"
+
+    %% Bewegungen referenzieren zwei Räume (from/to) plus Gerät
+    **ROOMS**          ||--o{ **MOVEMENT_LOG**    : "**FROM**"
+    **ROOMS**          ||--o{ **MOVEMENT_LOG**    : "**TO**"
+    **DEVICES**        ||--o{ **MOVEMENT_LOG**    : "**AUSGELÖST DURCH**"
+
+    %% Kind-zentrische Beziehungen
+    **CHILDREN**       ||--o| **CHILD_LOCATIONS** : "**BEFINDET SICH IN**"
+    **CHILDREN**       ||--o{ **MOVEMENT_LOG**    : "**BEWEGT SICH**"
+
+    %% ==================================================================
+    %% FARBEN PRO TABELLE
+    %% ==================================================================
+    style **ROOMS** fill:#DBEAFE,stroke:#2563EB,stroke-width:2px,color:#0F172A
+    style **CHILDREN** fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#0F172A
+    style **DEVICES** fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#0F172A
+    style **CHILD_LOCATIONS** fill:#F3E8FF,stroke:#9333EA,stroke-width:2px,color:#0F172A
+    style **MOVEMENT_LOG** fill:#E0F2FE,stroke:#0891B2,stroke-width:2px,color:#0F172A
+    style **ALERTS** fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#0F172A

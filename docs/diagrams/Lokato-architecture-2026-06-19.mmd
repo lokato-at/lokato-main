@@ -1,0 +1,313 @@
+---
+title: Lokato — Architekturdiagramm
+
+config:
+  layout: elk
+  theme: base
+  look: classic
+  flowchart:
+    htmlLabels: true
+    curve: basis
+    nodeSpacing: 60
+    rankSpacing: 65
+
+  themeVariables:
+    fontFamily: 'Inter, Segoe UI, Helvetica, Arial, sans-serif'
+
+  themeCSS: |
+    /* =====================================================
+       DIAGRAMMTITEL
+       ===================================================== */
+
+    .flowchartTitleText {
+      font-size: 34px !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.4px !important;
+    }
+
+
+    /* =====================================================
+       TITEL DES LOKATO-SUBGRAPHS
+       ===================================================== */
+
+    .cluster-label .nodeLabel {
+      display: inline-block !important;
+
+      margin-top: 10px !important;
+      padding: 8px 16px !important;
+
+      background: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      border-radius: 999px !important;
+
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+
+      color: #1E3A8A !important;
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      line-height: 1.3 !important;
+    }
+
+    .cluster-label .nodeLabel p {
+      margin: 0 !important;
+    }
+
+
+    /* =====================================================
+       TEXTE INNERHALB DER KNOTEN
+       ===================================================== */
+
+    /* Haupttitel eines Knotens */
+    .node .nodeLabel b {
+      font-size: 17px !important;
+      font-weight: 800 !important;
+      line-height: 1.2 !important;
+    }
+
+    /* Normaler Beschreibungstext */
+    .node .nodeLabel {
+      font-size: 14px !important;
+      font-weight: 400 !important;
+      line-height: 1.42 !important;
+    }
+
+    .nodeLabel p {
+      margin: 0 !important;
+    }
+
+    /* Technologiezeilen wie Vue 3 SPA oder MariaDB */
+    .node .nodeLabel i:not([class*="fa"]) {
+      font-size: 12.5px !important;
+      font-weight: 600 !important;
+      line-height: 1.3 !important;
+      opacity: 0.78 !important;
+    }
+
+    /* Zusatztexte innerhalb der Knoten */
+    .nodeLabel sub {
+      font-size: 12px !important;
+      font-weight: 500 !important;
+      line-height: 1.3 !important;
+      opacity: 0.8 !important;
+    }
+
+
+    /* =====================================================
+       VERBINDUNGSTEXTE
+       ===================================================== */
+
+    /* Verhindert einen zusätzlichen Mermaid-Hintergrund */
+    .edgeLabel {
+      background: transparent !important;
+    }
+
+    .edgeLabel rect {
+      fill: transparent !important;
+      stroke: transparent !important;
+    }
+
+    .edgeLabel foreignObject,
+    .edgeLabel foreignObject div {
+      overflow: visible !important;
+    }
+
+    /* Weißes Label auf den Pfeilen */
+    .edgeLabel foreignObject p {
+      display: inline-block !important;
+
+      margin: 0 !important;
+      padding: 7px 12px !important;
+      box-sizing: border-box !important;
+
+      background: #FFFFFF !important;
+      border: 1px solid #D7DEE8 !important;
+      border-radius: 6px !important;
+
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+
+      color: #334155 !important;
+      font-size: 12.5px !important;
+      font-weight: 800 !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Zusatztexte wie MQTT Publish oder REST & SSE */
+    .edgeLabel sub {
+      display: block !important;
+
+      margin-top: 3px !important;
+
+      color: #64748B !important;
+      font-size: 12.5px !important;
+      font-weight: 500 !important;
+      line-height: 1.3 !important;
+    }
+
+    /* Technische Event-Namen wie child.moved */
+    .edgeLabel code {
+      display: inline-block !important;
+
+      padding: 1px 4px !important;
+
+      background: #F1F5F9 !important;
+      border-radius: 3px !important;
+
+      color: #475569 !important;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+    }
+
+
+    /* =====================================================
+       ICONS
+       ===================================================== */
+
+    .nodeLabel i.fa,
+    .nodeLabel i.fas,
+    .nodeLabel i.far,
+    .nodeLabel i.fab,
+    .nodeLabel i.fa-solid,
+    .nodeLabel i.fa-regular,
+    .nodeLabel i.fa-brands,
+    .nodeLabel svg {
+      margin-right: 4px !important;
+      font-size: 18px !important;
+    }
+
+    .fa-vuejs {
+      color: #42B883 !important;
+    }
+
+    .fa-laravel {
+      color: #FF2D20 !important;
+    }
+
+
+    /* =====================================================
+       EINHEITLICHE AKTEUR-KAPSELN
+       ===================================================== */
+
+    .wideCapsule .nodeLabel {
+      display: inline-block !important;
+      width: 170px !important;
+      box-sizing: border-box !important;
+
+      color: inherit !important;
+    }
+---
+
+flowchart LR
+
+    %% =====================================================
+    %% LOKATO-SYSTEM
+    %% =====================================================
+
+    subgraph LOKATO["fab:fa-raspberry-pi Lokato-System · läuft auf einem Raspberry Pi im Hort-WLAN"]
+        direction TB
+
+        WEB["fab:fa-vuejs <b>Web-Anwendung</b><br><i>Vue 3 SPA</i><br><br>Stellt Dashboard, Raum-Tablet-Ansichten<br>und Admin-Bereich im Browser bereit.<br>Reagiert ohne Neuladen auf Live-Events."]
+
+        API["fab:fa-laravel <b>Anwendungs-Server</b><br><i>Laravel 12 + nginx + php-fpm</i><br><br>Verarbeitet eingehende Scans atomar,<br>verwaltet Anwesenheit + Stammdaten<br>und streamt Live-Updates an alle Browser.<br><br><i>Auth: Laravel Sanctum (Bearer-Token)</i>"]
+
+        DB[("fa:fa-database <b>Datenbank</b><br><i>MariaDB · InnoDB</i><br><br>Speichert Räume, Kinder, Geräte,<br>aktuellen Anwesenheits-Stand<br>und die vollständige Bewegungs-Historie.")]
+
+        BROKER["fa:fa-broadcast-tower <b>Nachrichten-Broker</b><br><i>Mosquitto 2 · MQTT v3.1.1</i><br><br>Entkoppelt Scanner-Hardware vom Backend.<br>Empfängt Scan-Events von beliebig vielen<br>Scannern und stellt sie dem Server zu."]
+
+        CACHE[("fa:fa-bolt <b>Live-Signal-Cache</b><br><i>Laravel Cache · database-Driver</i><br><br>Sehr schnell befragbarer Schalter.<br>Sobald ein Scan eintrifft, weckt er alle<br>offenen Browser-Verbindungen sofort auf.")]
+    end
+
+
+    %% =====================================================
+    %% NUTZER UND GERÄTE
+    %% =====================================================
+
+    CARER(["fa:fa-user-tie <b>Betreuer*in</b><br><i>Hort-Personal</i><br><br>Nutzt Dashboard<br>und Admin-Bereich"])
+        -- "öffnet im Browser" -->
+        WEB
+
+    PARENT(["fa:fa-user-friends <b>Eltern</b><br><i>Beim Abholen</i><br><br>Sieht beim Eingang<br>das Dashboard"])
+        -- "betrachtet beim Abholen<br><sub>Read-only Dashboard</sub>" -->
+        WEB
+
+    TABLET(["fa:fa-tablet-alt <b>Raum-Tablet</b><br><i>1 pro Raum</i><br><br>Zeigt die<br>Raum-Belegung"])
+        -- "zeigt fest die Raum-Ansicht" -->
+        WEB
+
+
+    %% =====================================================
+    %% RFID-ERFASSUNG
+    %% =====================================================
+
+    CHILD(["fa:fa-child <b>Kind</b><br><i>mit RFID-Tracker</i><br><br>Wird beim Durchgang<br>passiv erkannt"])
+        -. "wird passiv erkannt" .-
+        SCANNER["fa:fa-microchip <b>Scanner-Hardware</b><br><i>Externes System · pro Raumtür</i><br><br><b>ESP32 + UHF-RFID-Reader</b><br><br>Erkennt vorbeigehende RFID-Tracker<br>und meldet jeden Scan ans Lokato-System"]
+
+
+    %% =====================================================
+    %% HARDWARE- UND MQTT-PFAD
+    %% =====================================================
+
+    SCANNER
+        -- "publiziert Scan-Event<br><sub>MQTT Publish</sub>" -->
+        BROKER
+
+    BROKER
+        -- "stellt Scan zu<br><sub>MQTT Subscribe</sub>" -->
+        API
+
+
+    %% =====================================================
+    %% FRONTEND UND BACKEND
+    %% =====================================================
+
+    WEB
+        -- "fragt Daten an + öffnet Live-Stream<br><sub>REST &amp; SSE-Connect</sub>" -->
+        API
+
+    API
+        -. "schickt Live-Updates<br><sub>Server-Sent Events<br>Events: <code>child.moved</code> · <code>occupancy</code> · <code>alert</code></sub>" .->
+        WEB
+
+
+    %% =====================================================
+    %% DATENBANK UND LIVE-SIGNAL
+    %% =====================================================
+
+    API
+        <-- "liest und schreibt" -->
+        DB
+
+    API
+        <-- "wird benachrichtigt / weckt Streams" -->
+        CACHE
+
+
+    %% =====================================================
+    %% KLASSEN
+    %% =====================================================
+
+    CARER:::wideCapsule
+    PARENT:::wideCapsule
+    TABLET:::wideCapsule
+    CHILD:::wideCapsule
+
+
+    %% =====================================================
+    %% FARBEN UND RAHMEN
+    %% =====================================================
+
+    style CARER fill:#FED7AA,stroke:#EA580C,stroke-width:2.5px,color:#7C2D12
+    style PARENT fill:#FED7AA,stroke:#EA580C,stroke-width:2.5px,color:#7C2D12
+    style TABLET fill:#FED7AA,stroke:#EA580C,stroke-width:2.5px,color:#7C2D12
+    style CHILD fill:#FED7AA,stroke:#EA580C,stroke-width:2.5px,color:#7C2D12
+
+    style SCANNER fill:#F5D0FE,stroke:#A21CAF,stroke-width:3px,color:#581C87
+
+    style WEB fill:#BBF7D0,stroke:#16A34A,stroke-width:3px,color:#14532D
+    style API fill:#BFDBFE,stroke:#1D4ED8,stroke-width:3px,color:#1E3A8A
+    style DB fill:#FECACA,stroke:#DC2626,stroke-width:3px,color:#7F1D1D
+    style BROKER fill:#DDD6FE,stroke:#7C3AED,stroke-width:3px,color:#4C1D95
+    style CACHE fill:#FDE68A,stroke:#D97706,stroke-width:3px,color:#78350F
+
+    style LOKATO fill:#E2E8F0,stroke:#1E40AF,stroke-width:3px
