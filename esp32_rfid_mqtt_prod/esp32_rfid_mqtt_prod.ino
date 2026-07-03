@@ -124,7 +124,7 @@ static void uidToHexString(const uint8_t uid[12], char* out, size_t outSize) {
   out[26] = '\0';
 }
 
-static bool getIso8601Local(char* out, size_t outSize) {
+static bool getIso8601Utc(char* out, size_t outSize) {
   if (outSize > 0) {
     out[0] = '\0';
   }
@@ -133,36 +133,26 @@ static bool getIso8601Local(char* out, size_t outSize) {
     return false;
   }
 
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo, 100)) {
-    return false;
-  }
+  // time(nullptr) liefert die UTC-Epoch (unabhaengig von der lokalen TZ), und
+  // gmtime_r rechnet sie in UTC-Bestandteile um. So senden wir bewusst UTC —
+  // egal wie configTzTime eingestellt ist.
+  const time_t now = time(nullptr);
+  struct tm tmUtc;
+  gmtime_r(&now, &tmUtc);
 
-  const int year = timeinfo.tm_year + 1900;
+  const int year = tmUtc.tm_year + 1900;
   if (year < 2024) {
     return false;
   }
 
-  char tmp[40] = { 0 };
-
-  // Beispiel: 2026-05-02T20:15:30+0200
-  if (strftime(tmp, sizeof(tmp), "%Y-%m-%dT%H:%M:%S%z", &timeinfo) == 0) {
+  // Immer UTC mit "Z"-Suffix. Der Server (app.timezone = UTC) speichert die
+  // Zeit dann 1:1, und das Frontend rechnet fuer die Anzeige in die lokale
+  // Browser-Zeit zurueck -> kein +2h-Versatz durch Sommerzeit mehr.
+  // Beispiel: 2026-07-03T12:15:30Z
+  if (strftime(out, outSize, "%Y-%m-%dT%H:%M:%SZ", &tmUtc) == 0) {
     return false;
   }
 
-  // +0200 zu +02:00 umbauen
-  const size_t len = strlen(tmp);
-  if (len >= 5 && outSize >= len + 2) {
-    memcpy(out, tmp, len - 2);
-    out[len - 2] = ':';
-    out[len - 1] = tmp[len - 2];
-    out[len] = tmp[len - 1];
-    out[len + 1] = '\0';
-    return true;
-  }
-
-  strncpy(out, tmp, outSize - 1);
-  out[outSize - 1] = '\0';
   return true;
 }
 
@@ -232,7 +222,7 @@ static bool publishScanEvent(const uint8_t uid[12]) {
   doc["wifi_rssi"] = WiFi.RSSI();
 
   char ts[40];
-  if (getIso8601Local(ts, sizeof(ts))) {
+  if (getIso8601Utc(ts, sizeof(ts))) {
     doc["event_time"] = ts;
   } else {
     doc["event_time"] = nullptr;
